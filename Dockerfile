@@ -14,4 +14,4 @@ RUN chmod +x ./mvnw
 RUN ./mvnw clean package -DskipTests
 
 # Chạy ứng dụng Spring Boot
-CMD ["java", "-jar", "target/net-0.0.1-SNAPSHOT.war"]
+CMD ["java", "-jar", "target/net-0.0.1-SNAPSHOT.jar"]
