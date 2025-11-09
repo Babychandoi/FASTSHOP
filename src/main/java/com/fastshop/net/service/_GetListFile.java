@@ -1,0 +1,15 @@
+package com.fastshop.net.service;
+
+import java.io.File;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class _GetListFile {
+    @Transactional
+    public String[] get(String folder) {
+        File directoryPath = new File(folder);
+        return directoryPath.list();
+    }
+}

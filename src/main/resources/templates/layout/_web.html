@@ -1,0 +1,583 @@
+<!doctype html>
+<html xmlns:th="https://www.thymeleaf.org" th:fragment="dynamic(view)">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>[[${title_main}]]</title>
+    <style>
+      @import url('https://rsms.me/inter/inter.css');
+      :root {
+      	--tblr-font-sans-serif: Inter,-apple-system,BlinkMacSystemFont,San Francisco,Segoe UI,Roboto,Helvetica Neue,sans-serif !important;
+      }
+      
+      /* Admin Sidebar Styles */
+      .page-with-sidebar {
+        display: flex;
+        min-height: calc(100vh - 100px);
+        align-items: flex-start;
+        position: relative;
+        gap: 0;
+        padding-top: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+      
+      .sidebar-admin-container {
+        width: 250px;
+        min-width: 250px;
+        max-width: 250px;
+        background-color: #fff;
+        border-right: 1px solid #e9ecef;
+        padding: 1rem 0;
+        position: sticky;
+        top: 80px;
+        align-self: flex-start;
+        height: fit-content;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+        z-index: 1;
+        flex-shrink: 0;
+      }
+      
+      .sidebar-admin-container .sidebar {
+        width: 100%;
+      }
+      
+      .sidebar-admin-container .sidebar-nav {
+        width: 100%;
+      }
+      
+      .sidebar-admin-container .nav {
+        flex-direction: column;
+        padding: 0;
+        margin: 0;
+      }
+      
+      .sidebar-admin-container .nav-item {
+        margin: 0;
+      }
+      
+      .sidebar-admin-container .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        color: #495057;
+        text-decoration: none;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+      }
+      
+      .sidebar-admin-container .nav-link:hover {
+        background-color: #f8f9fa;
+        color: #206bc4;
+        border-left-color: #206bc4;
+      }
+      
+      .sidebar-admin-container .nav-link.active {
+        background-color: #f0f4ff;
+        color: #206bc4;
+        border-left-color: #206bc4;
+        font-weight: 600;
+      }
+      
+      .sidebar-admin-container .nav-link-icon {
+        margin-right: 0.75rem;
+        width: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .sidebar-admin-container .nav-link-icon svg {
+        width: 20px;
+        height: 20px;
+      }
+      
+      .sidebar-admin-container .nav-link-title {
+        font-size: 0.95rem;
+      }
+      
+      /* Prevent Tabler from initializing dropdown/collapse on sidebar */
+      .sidebar-admin-container .nav-link {
+        pointer-events: auto;
+      }
+      
+      .sidebar-admin-container .nav-link:not([data-bs-toggle]) {
+        /* Ensure links work normally */
+      }
+      
+      .page-content-with-sidebar {
+        flex: 1;
+        margin-left: 0;
+        margin-right: 3rem;
+        padding-left: 1.5rem;
+        padding-top: 0;
+        margin-top: 0;
+        min-width: 0;
+        position: relative;
+        z-index: 0;
+        width: 100%;
+        max-width: calc(100% - 3rem);
+        overflow: visible;
+        align-self: flex-start;
+      }
+      
+      .page-content-with-sidebar .container-xl {
+        max-width: 100%;
+        padding-right: 1.5rem;
+        padding-top: 0;
+        margin-top: 0;
+      }
+      
+      /* Đảm bảo content bắt đầu từ trên cùng */
+      .page-content-with-sidebar > div {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+      }
+      
+      .page-content-with-sidebar > div > .page-wrapper {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+      }
+      
+      .page-content-with-sidebar .page-header {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        margin-bottom: 0.5rem !important;
+      }
+      
+      .page-content-with-sidebar .page-body {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+      }
+      
+      /* Đảm bảo biểu đồ hiển thị đúng */
+      .page-content-with-sidebar canvas#myChart {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 400px;
+      }
+      
+      .page-content-with-sidebar #myChart23 {
+        width: 100% !important;
+        height: 500px !important;
+        min-height: 500px;
+      }
+      
+      /* Đảm bảo modal và các nút trong modal có thể click được */
+      .modal {
+        z-index: 1060 !important;
+      }
+      
+      /* Ẩn modal backdrop để không đè lên các nút */
+      .modal-backdrop {
+        display: none !important;
+      }
+      
+      /* Modal content và dialog phải ở trên backdrop */
+      .modal-dialog {
+        z-index: 1061 !important;
+        position: relative;
+      }
+      
+      .modal-content {
+        z-index: 1062 !important;
+        position: relative;
+        pointer-events: auto !important;
+      }
+      
+      /* Đảm bảo tất cả các phần tử trong modal có thể click được */
+      .modal-content * {
+        pointer-events: auto !important;
+      }
+      
+      .modal-footer .btn,
+      .modal-footer a {
+        position: relative;
+        z-index: 1063 !important;
+        pointer-events: auto !important;
+      }
+      
+      /* Đảm bảo sidebar không đè lên modal */
+      .sidebar-admin-container {
+        z-index: 1 !important;
+      }
+      
+      /* Sidebar backdrop chỉ hiển thị trên mobile và không được đè lên modal */
+      .sidebar-backdrop {
+        z-index: 1050 !important;
+      }
+      
+      /* Khi modal hiển thị, ẩn sidebar backdrop để không chặn modal */
+      body:has(.modal.show) .sidebar-backdrop {
+        display: none !important;
+      }
+      
+      /* Đảm bảo modal luôn ở trên cùng */
+      body:has(.modal.show) .sidebar-admin-container {
+        z-index: 1 !important;
+      }
+      
+      @media (max-width: 768px) {
+        .sidebar-admin-container {
+          position: fixed;
+          left: -250px;
+          z-index: 1000;
+          transition: left 0.3s ease;
+          box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+          height: 100vh;
+          max-height: 100vh;
+        }
+        
+        .sidebar-admin-container.show {
+          left: 0;
+        }
+        
+        .page-content-with-sidebar {
+          padding-left: 0;
+          width: 100%;
+        }
+        
+        .sidebar-backdrop {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 999;
+        }
+        
+        .sidebar-backdrop.show {
+          display: block;
+        }
+      }
+    </style>
+    <!-- CSS files -->
+    <link th:href="@{/dist/css/tabler.min.css}" rel="stylesheet"/>
+    <link th:href="@{/dist/css/tabler-flags.min.css}" rel="stylesheet"/>
+    <link th:href="@{/dist/css/tabler-payments.min.css}" rel="stylesheet"/>
+    <link th:href="@{/dist/css/tabler-vendors.min.css}" rel="stylesheet"/>
+    <link th:href="@{/dist/css/demo.min.css}" rel="stylesheet"/>
+    <link th:href="@{/dist/css/all_feature.css}" rel="stylesheet"/>
+    <link rel="shortcut icon" th:href="@{/dist/img/logo/logo_favicon.png}" type="image/x-icon">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+	  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Prevent Tabler from auto-initializing account dropdown before menu is ready -->
+    <script>
+      // This runs immediately, before Tabler loads (which has defer attribute)
+      (function() {
+        const disableDropdownToggle = function() {
+          const accountToggle = document.getElementById('account-dropdown-toggle');
+          if (accountToggle && accountToggle.hasAttribute('data-bs-toggle')) {
+            accountToggle.removeAttribute('data-bs-toggle');
+            return true; // Found and disabled
+          }
+          return false;
+        };
+        
+        // Try immediately (in case DOM already loaded)
+        if (disableDropdownToggle()) return;
+        
+        // Use MutationObserver to catch element as soon as it's added
+        const observer = new MutationObserver(function(mutations) {
+          if (disableDropdownToggle()) {
+            observer.disconnect();
+          }
+        });
+        
+        // Start observing when DOM is ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function() {
+            observer.observe(document.body, {
+              childList: true,
+              subtree: true
+            });
+            // Also try immediately
+            if (disableDropdownToggle()) {
+              observer.disconnect();
+            }
+          });
+        } else {
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true
+          });
+          if (disableDropdownToggle()) {
+            observer.disconnect();
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body ng-app="app">
+    <div class="page" style="position: relative;">
+      <header class="navbar navbar-expand-md navbar-light d-print-none">
+        <div class="container-xl">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          
+          <!-- logo -->
+          <h1 th:replace="~{/layout/_logo::logo}"></h1>
+
+          <div class="navbar-nav flex-row order-md-last">
+            
+            <!-- language -->
+            <div th:replace="~{/layout/_language::language}"></div>
+            
+            <!-- mode light dark and cart -->
+            <div th:replace="~{/layout/_mode_cart::mode_cart}"></div>
+
+
+            <!-- account -->
+            <div th:replace="${auth == null} ? ~{/layout/_account :: header-nb} : ~{/layout/_account :: header-sb}"></div>
+
+
+          </div>
+        </div>
+      </header>
+
+
+
+      <!-- menu -->
+      <th:block th:unless="${page != null and page.startsWith('admin.')}">
+        <div class="navbar-expand-md">
+          <th:block th:if="${auth != null}">
+            <th:block th:if="${auth.role.id == 'STAFF'}">
+              <div th:insert="~{/layout/_menu :: menu-staff}" class="navbar-expand-md"></div>
+            </th:block>
+            <th:block th:if="${auth.role.id == 'USER'}">
+              <div th:insert="~{/layout/_menu :: menu-user}" class="navbar-expand-md"></div>
+            </th:block>
+          </th:block>
+          <th:unless th:if="${auth == null}">
+            <div th:insert="~{/layout/_menu :: menu-user}" class="navbar-expand-md"></div>
+          </th:unless>
+        </div>
+      </th:block>
+      
+      <!-- Sidebar toggle button for mobile (admin only) -->
+      <th:block th:if="${page != null and page.startsWith('admin.')}">
+        <button class="btn btn-link d-md-none position-fixed top-0 start-0 m-3" style="z-index: 1001; background: white; border: 1px solid #ddd;" onclick="toggleSidebar()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <line x1="4" y1="6" x2="20" y2="6"/>
+            <line x1="4" y1="12" x2="20" y2="12"/>
+            <line x1="4" y1="18" x2="20" y2="18"/>
+          </svg>
+        </button>
+      </th:block>
+
+      <!-- main -->
+      <div th:classappend="${page != null and page.startsWith('admin.')} ? 'page-with-sidebar'">
+        <!-- Sidebar for admin pages -->
+        <th:block th:if="${page != null and page.startsWith('admin.')}">
+          <aside class="sidebar sidebar-admin-container">
+            <div th:insert="~{/layout/_menu :: sidebar-admin}"></div>
+          </aside>
+          <div class="sidebar-backdrop d-md-none" onclick="toggleSidebar()"></div>
+        </th:block>
+        
+        <!-- Main content -->
+        <div th:classappend="${page != null and page.startsWith('admin.')} ? 'page-content-with-sidebar' : ''" class="container-xl">
+          <div th:replace="${view}"></div>
+        </div>
+      </div>
+
+
+      <!-- footer -->
+      <th:block th:if="${auth != null}">
+        <th:block th:if="${auth.role.id == 'USER' }">
+          <footer th:replace="~{/layout/_footer::footer}"></footer>
+        </th:block>
+      </th:block>
+      <th:unless th:if="${auth == null}">
+        <footer th:replace="~{/layout/_footer::footer}"></footer>
+      </th:unless>
+    </div>
+    <script th:src="@{/angular/sumary.js}"></script>
+    <script th:src="@{/dist/js/all_feature.js}" type="text/javascript" defer></script>
+    <script th:src="@{/dist/libs/apexcharts/dist/apexcharts.min.js}" type="text/javascript" defer></script>
+    <script th:src="@{/dist/libs/jsvectormap/dist/js/jsvectormap.min.js}" type="text/javascript" defer></script>
+    <script th:src="@{/dist/libs/jsvectormap/dist/maps/world.js}" type="text/javascript" defer></script>
+    <script th:src="@{/dist/libs/jsvectormap/dist/maps/world-merc.js}" type="text/javascript" defer></script>
+    
+    <link th:href="@{/lib/animate/animate.min.css}" rel="stylesheet">
+    <link th:href="@{/lib/owlcarousel/assets/owl.carousel.min.css}" rel="stylesheet">
+    <script th:src="@{/lib/easing/easing.min.js}"></script>
+    <script th:src="@{/lib/owlcarousel/owl.carousel.min.js}"></script>
+
+    <script th:src="@{/dist/js/tabler.min.js}" type="text/javascript" defer></script>
+    <script th:src="@{/dist/js/demo.min.js}" type="text/javascript" defer></script>
+    <script>
+      function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar-admin-container');
+        const backdrop = document.querySelector('.sidebar-backdrop');
+        if (sidebar && backdrop) {
+          sidebar.classList.toggle('show');
+          backdrop.classList.toggle('show');
+        }
+      }
+      
+      // Close sidebar when clicking on a link (mobile only) and prevent Tabler from handling it
+      document.addEventListener('DOMContentLoaded', function() {
+        const sidebarLinks = document.querySelectorAll('.sidebar-admin-container .nav-link');
+        sidebarLinks.forEach(link => {
+          // Remove any data-bs-toggle that might interfere
+          link.removeAttribute('data-bs-toggle');
+          
+          // Prevent Tabler from processing sidebar links - use capture phase
+          link.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            if (window.innerWidth <= 768) {
+              toggleSidebar();
+            }
+            // Allow default link behavior (navigation)
+            return true;
+          }, true); // Capture phase - runs before Tabler handlers
+        });
+        
+        // Also prevent on the nav container
+        const sidebarNav = document.querySelector('.sidebar-admin-container .nav');
+        if (sidebarNav) {
+          sidebarNav.addEventListener('click', function(e) {
+            if (e.target.closest('.nav-link')) {
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+            }
+          }, true); // Capture phase
+        }
+      });
+      
+      // Hide sidebar backdrop when modal is shown to prevent blocking clicks
+      (function() {
+        function handleModalToggle() {
+          const modals = document.querySelectorAll('.modal');
+          const backdrop = document.querySelector('.sidebar-backdrop');
+          
+          modals.forEach(modal => {
+            if (modal.classList.contains('show')) {
+              // Modal is visible, hide sidebar backdrop
+              if (backdrop) {
+                backdrop.style.display = 'none';
+              }
+            } else {
+              // Modal is hidden, restore sidebar backdrop if needed (mobile only)
+              if (backdrop && window.innerWidth <= 768) {
+                const sidebar = document.querySelector('.sidebar-admin-container');
+                if (sidebar && sidebar.classList.contains('show')) {
+                  backdrop.style.display = 'block';
+                }
+              }
+            }
+          });
+        }
+        
+        // Watch for modal show/hide events
+        document.addEventListener('DOMContentLoaded', function() {
+          // Observe modal changes
+          const observer = new MutationObserver(function(mutations) {
+            handleModalToggle();
+          });
+          
+          // Start observing all modals
+          const modals = document.querySelectorAll('.modal');
+          modals.forEach(modal => {
+            observer.observe(modal, {
+              attributes: true,
+              attributeFilter: ['class']
+            });
+          });
+          
+          // Also listen to Bootstrap modal events
+          modals.forEach(modal => {
+            modal.addEventListener('show.bs.modal', function() {
+              const backdrop = document.querySelector('.sidebar-backdrop');
+              if (backdrop) backdrop.style.display = 'none';
+            });
+            
+            modal.addEventListener('hidden.bs.modal', function() {
+              const backdrop = document.querySelector('.sidebar-backdrop');
+              const sidebar = document.querySelector('.sidebar-admin-container');
+              if (backdrop && window.innerWidth <= 768 && sidebar && sidebar.classList.contains('show')) {
+                backdrop.style.display = 'block';
+              }
+            });
+          });
+        });
+        
+        // Initial check
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', handleModalToggle);
+        } else {
+          handleModalToggle();
+        }
+      })();
+      
+      // Fix account dropdown for Tabler - prevent errors and ensure it works
+      (function() {
+        const fixAccountDropdown = () => {
+          const accountToggle = document.getElementById('account-dropdown-toggle');
+          if (!accountToggle) return;
+          
+          // Find the actual visible dropdown menu (user, staff, or admin)
+          const accountDropdown = document.getElementById('account-dropdown-menu-user') ||
+                                 document.getElementById('account-dropdown-menu-staff') ||
+                                 document.getElementById('account-dropdown-menu-admin');
+          
+          if (!accountDropdown) return;
+          
+          // Ensure the dropdown is properly associated
+          if (!accountDropdown.hasAttribute('data-bs-popper')) {
+            accountDropdown.setAttribute('data-bs-popper', 'static');
+          }
+          
+          // Now re-enable and initialize dropdown
+          if (!accountToggle.hasAttribute('data-bs-toggle')) {
+            accountToggle.setAttribute('data-bs-toggle', 'dropdown');
+          }
+          
+          // Initialize with Bootstrap
+          setTimeout(() => {
+            try {
+              if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                // Dispose any existing instance
+                const existingInstance = bootstrap.Dropdown.getInstance(accountToggle);
+                if (existingInstance) {
+                  existingInstance.dispose();
+                }
+                // Create new instance
+                new bootstrap.Dropdown(accountToggle);
+              }
+            } catch(e) {
+              console.log('Dropdown init error (non-critical):', e);
+            }
+          }, 50);
+        };
+        
+        // Wait for DOM and then fix
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(fixAccountDropdown, 100);
+          });
+        } else {
+          setTimeout(fixAccountDropdown, 100);
+        }
+        
+        // Try again after Tabler and Angular load
+        setTimeout(fixAccountDropdown, 600);
+        setTimeout(fixAccountDropdown, 1200);
+        window.addEventListener('load', () => {
+          setTimeout(fixAccountDropdown, 200);
+        });
+      })();
+    </script>
+  </body>
+</html>

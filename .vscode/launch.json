@@ -2,13 +2,28 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch CreateCode",
+            "request": "launch",
+            "mainClass": "com.fastshop.net.utils.CreateCode",
+            "projectName": "net"
+        },
+        {
+            "type": "java",
+            "name": "Launch ReadFile",
+            "request": "launch",
+            "mainClass": "com.fastshop.net.utils.ReadFile",
+            "projectName": "net"
+        },
+        {
+            "type": "java",
             "name": "Spring Boot-NetApplication<net>",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "mainClass": "com.fastshop.net.NetApplication",
             "projectName": "net",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=51806 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=net"
         }
     ]
 }
