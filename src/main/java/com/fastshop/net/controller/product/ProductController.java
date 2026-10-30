@@ -3,7 +3,6 @@ package com.fastshop.net.controller.product;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fastshop.net.config.UploadConfig;
 import com.fastshop.net.model.Account;
 import com.fastshop.net.model.Authority;
 import com.fastshop.net.model.Notify;
@@ -29,8 +29,6 @@ import com.fastshop.net.service._CookieService;
 
 @Controller
 public class ProductController {
-    // Lấy đường dẫn từ thư mục project root (net)
-    public static String uploadDir = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "static", "dist", "img", "products").toAbsolutePath().toString().replace("\\", "/");
     @Autowired
     _CookieService cookieService;
     @Autowired
@@ -70,8 +68,8 @@ public class ProductController {
             
             String imageUUID = "";
             if(!fileProductImage.isEmpty()){
-                imageUUID = fileProductImage.getOriginalFilename();
-                Path uploadPath = Paths.get(uploadDir);
+                imageUUID = UploadConfig.safeFileName(fileProductImage.getOriginalFilename(), UploadConfig.IMAGE_EXTENSIONS);
+                Path uploadPath = UploadConfig.productImageDir();
                 // Tạo thư mục nếu chưa tồn tại
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
@@ -80,6 +78,9 @@ public class ProductController {
                 Files.write(fileNameAndPath, fileProductImage.getBytes());
             }else {
                 imageUUID = imgName;
+            }
+            if (imageUUID == null || imageUUID.isBlank()) {
+                return "redirect:/staff/products?error=image";
             }
             product.setImage(imageUUID);
 
@@ -104,7 +105,7 @@ public class ProductController {
             return "redirect:/staff/products";
         } catch (Exception e) {
             e.printStackTrace();
-            return "redirect:/staff/products";
+            return "redirect:/staff/products?error=upload";
         }
     }
 
@@ -139,8 +140,8 @@ public class ProductController {
             
             // Xử lý ảnh mới nếu có
             if (fileProductImage != null && !fileProductImage.isEmpty()) {
-                String imageUUID = fileProductImage.getOriginalFilename();
-                Path uploadPath = Paths.get(uploadDir);
+                String imageUUID = UploadConfig.safeFileName(fileProductImage.getOriginalFilename(), UploadConfig.IMAGE_EXTENSIONS);
+                Path uploadPath = UploadConfig.productImageDir();
                 // Tạo thư mục nếu chưa tồn tại
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
@@ -162,7 +163,7 @@ public class ProductController {
             return "redirect:/staff/products";
         } catch (Exception e) {
             e.printStackTrace();
-            return "redirect:/staff/products";
+            return "redirect:/staff/products?error=upload";
         }
     }
 

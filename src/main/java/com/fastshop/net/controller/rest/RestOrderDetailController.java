@@ -3,6 +3,7 @@ package com.fastshop.net.controller.rest;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,9 +39,12 @@ public class RestOrderDetailController {
     }
 
     @PostMapping("/rest/orderdetails")
-    public OrderDetail create(@RequestBody OrderDetail orderDetail) {
-        orderDetailService.save(orderDetail);
-        return orderDetail;
+    public ResponseEntity<?> create(@RequestBody OrderDetail orderDetail) {
+        try {
+            return ResponseEntity.ok(orderDetailService.placeItem(orderDetail));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/rest/orderdetails/{id}")

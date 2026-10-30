@@ -1,6 +1,7 @@
 package com.fastshop.net.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,4 +22,5 @@ public interface CommentService {
     void deleteById(Integer id);
     Integer countByRateEquals5();
     List<Comment> listCommentByUser(String username);
+    Map<Integer, double[]> getRatingSummary();
 }

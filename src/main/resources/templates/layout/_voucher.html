@@ -1,0 +1,39 @@
+<!-- Danh sách mã giảm giá còn hiệu lực (dùng ở trang Mã giảm giá và trang Khuyến mãi). Dữ liệu lấy bởi voucher-ctrl -->
+<div th:fragment="list" ng-controller="voucher-ctrl">
+  <div class="text-center text-muted py-4" ng-if="!loaded">
+    <div class="spinner-border spinner-border-sm me-2"></div> Đang tải mã giảm giá...
+  </div>
+
+  <div class="empty py-4" ng-if="loaded && vouchers.length == 0">
+    <p class="empty-title">Hiện chưa có mã giảm giá nào</p>
+    <p class="empty-subtitle text-muted">Hãy quay lại sau để nhận ưu đãi mới nhé.</p>
+  </div>
+
+  <div class="voucher-grid" ng-if="loaded && vouchers.length > 0">
+    <div class="voucher" ng-repeat="v in vouchers">
+      <div class="voucher-value" ng-class="{cash: !(v.free > 0)}">
+        <small>Giảm</small>
+        <strong ng-if="v.free > 0">{{ v.free | number:0 }}%</strong>
+        <strong ng-if="!(v.free > 0)">${{ v.dolar | number:0 }}</strong>
+        <small ng-if="v.free > 0">tổng đơn</small>
+        <small ng-if="!(v.free > 0)">tiền mặt</small>
+      </div>
+      <div class="voucher-body d-flex flex-column justify-content-between">
+        <div>
+          <div class="fw-bold mb-1" ng-if="v.free > 0">Giảm {{ v.free | number:0 }}% cho mọi đơn hàng</div>
+          <div class="fw-bold mb-1" ng-if="!(v.free > 0)">Giảm ${{ v.dolar | number:0 }} cho mọi đơn hàng</div>
+          <div class="text-muted fs-5">HSD: {{ v.dateEnd | date:'dd/MM/yyyy' }} · Còn {{ v.number }} lượt</div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-2 gap-2">
+          <span class="voucher-code text-truncate">{{ v.id }}</span>
+          <button type="button" class="btn btn-sm" ng-class="copied == v.id ? 'btn-success' : 'btn-outline-primary'" ng-click="copy(v.id)">
+            {{ copied == v.id ? 'Đã sao chép' : 'Sao chép mã' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="text-muted fs-5 mt-3" ng-if="loaded && vouchers.length > 0">
+    Nhập mã ở bước thanh toán (mục <b>Mã giảm giá</b> trong <a href="/user/checkout">giỏ hàng</a>) để được giảm giá.
+  </div>
+</div>

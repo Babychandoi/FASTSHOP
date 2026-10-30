@@ -55,7 +55,6 @@ public class SecurityConfig{
 	protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable().cors().disable();
         http.authorizeRequests()
-            .antMatchers("/rest/authorities").hasAnyRole("ADMIN")
             .anyRequest().permitAll();
         
         http.oauth2Login()

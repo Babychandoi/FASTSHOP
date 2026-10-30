@@ -1,7 +1,9 @@
 package com.fastshop.net.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -106,5 +108,15 @@ public class CommentServiceImpl implements CommentService{
     @Transactional(readOnly = true)
     public Integer countByRateEquals5() {
         return commentDAO.countByRateEquals5();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Integer, double[]> getRatingSummary() {
+        Map<Integer, double[]> ratings = new HashMap<>();
+        for (Object[] row : commentDAO.getRatingSummary()) {
+            ratings.put((Integer) row[0], new double[] { ((Number) row[1]).doubleValue(), ((Number) row[2]).doubleValue() });
+        }
+        return ratings;
     }
 }

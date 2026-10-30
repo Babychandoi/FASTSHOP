@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.fastshop.net.model.Account;
 import com.fastshop.net.repository.AccountDAO;
+import com.fastshop.net.security.Passwords;
 import com.fastshop.net.service.AccountService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +61,8 @@ public class AccountServiceImpl implements AccountService{
     @Override
     @Transactional(readOnly = true)
     public Account findByUsernameOrEmailAndPassword(String username, String email, String password) {
-        return accountDAO.findByUsernameOrEmailAndPassword(username, email, password);
+        Account account = accountDAO.findByUsernameOrEmail(username, email).orElse(null);
+        return (account != null && Passwords.matches(password, account.getPassword())) ? account : null;
     }
 
     @Override

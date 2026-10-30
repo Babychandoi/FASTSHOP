@@ -1,10 +1,10 @@
 <!doctype html>
-<html xmlns="https://www.thymeleaf.org" lang="en">
+<html xmlns="https://www.thymeleaf.org" lang="vi">
   <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
-    <title>Forgot password - Tabler - Premium and Open Source dashboard template with responsive and high quality UI.</title>
+    <title>Fastshop - Đặt lại mật khẩu</title>
     <style>
       @import url('https://rsms.me/inter/inter.css');
       :root {
@@ -22,11 +22,12 @@
     <div class="page page-center">
       <div class="container-tight py-4">
         <div class="text-center mb-4">
-          <a href="/" class="navbar-brand navbar-brand-autodark">
+          <a href="/fastshop.com" class="navbar-brand navbar-brand-autodark">
             <img th:src="@{/dist/img/logo/logo_hien.png}" height="36" alt="">
           </a>
         </div>
         <form class="card card-md" method="post" action="/ChangeForgotPassword" th:object="${accounts}">
+          <input type="hidden" name="token" th:value="${token}">
           <div class="card-body text-center">
             <div class="mb-4">
               <h2 class="card-title">Đổi mật khẩu mới</h2>
@@ -44,7 +45,7 @@
               <button type="submit" class="btn btn-primary w-100">
                 <!-- Download SVG icon from http://tabler-icons.io/i/lock-open -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="5" y="11" width="14" height="10" rx="2" /><circle cx="12" cy="16" r="1" /><path d="M8 11v-5a4 4 0 0 1 8 0" /></svg>
-                Đổi ngay
+                Đổi mật khẩu
               </button>
             </div>
           </div>

@@ -26,4 +26,8 @@ public interface CommentDAO extends JpaRepository<Comment, Integer>{
 
         @Query("SELECT COUNT(o) FROM Comment o WHERE o.rate = 5")
     Integer countByRateEquals5();
+
+    // [productId, điểm trung bình, số lượt đánh giá]
+    @Query("SELECT o.product.id, AVG(o.rate), COUNT(o) FROM Comment o GROUP BY o.product.id")
+    List<Object[]> getRatingSummary();
 }

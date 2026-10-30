@@ -1,0 +1,30 @@
+<!-- r = double[]{điểm trung bình, số lượt đánh giá} hoặc null -->
+<th:block th:fragment="stars(r)">
+  <span class="rating-stars d-inline-flex align-items-center" style="gap: 1px;">
+    <svg th:each="s : ${#numbers.sequence(1, 5)}" viewBox="0 0 24 24" height="14" width="14" fill="currentColor" xmlns="http://www.w3.org/2000/svg"
+         th:style="${r != null and s <= T(java.lang.Math).round(r[0])} ? 'color:#f59f00' : 'color:#dce1e7'"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>
+  </span>
+</th:block>
+
+<!-- n = số sao nguyên (1..5), dùng cho từng đánh giá -->
+<th:block th:fragment="rate(n)">
+  <span class="rating-stars d-inline-flex align-items-center" style="gap: 1px;">
+    <svg th:each="s : ${#numbers.sequence(1, 5)}" viewBox="0 0 24 24" height="14" width="14" fill="currentColor" xmlns="http://www.w3.org/2000/svg"
+         th:style="${n != null and s <= n} ? 'color:#f59f00' : 'color:#dce1e7'"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>
+  </span>
+</th:block>
+
+<th:block th:fragment="summary(r)">
+  <span class="d-inline-flex align-items-center text-muted fs-5" style="gap: 6px;">
+    <th:block th:replace="~{layout/_rating :: stars(${r})}"></th:block>
+    <span th:if="${r != null}">[[${#numbers.formatDecimal(r[0], 1, 1)}]] · [[${#numbers.formatInteger(r[1], 1)}]] đánh giá</span>
+    <span th:if="${r == null}">Chưa có đánh giá</span>
+  </span>
+</th:block>
+
+<th:block th:fragment="price(item)">
+  <span class="d-flex justify-content-between align-items-center w-100">
+    <b class="text-danger fs-3">$[[${#numbers.formatDecimal(item.price, 1, 'COMMA', 2, 'POINT')}]]</b>
+    <span th:if="${item.number == null or item.number <= 0 or item.available == false}" class="badge bg-secondary-lt">Hết hàng</span>
+  </span>
+</th:block>

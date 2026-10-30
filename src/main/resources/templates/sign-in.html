@@ -1,5 +1,5 @@
 <!doctype html>
-<html xmlns="https://www.thymeleaf.org" lang="en">
+<html xmlns="https://www.thymeleaf.org" lang="vi">
   <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
@@ -28,10 +28,10 @@
             </div>
             <h2 class="card-title text-center mb-4">Đăng nhập tài khoản của bạn</h2>
             <div class="mb-3">
-              <label class="form-label">Địa chỉ email</label>
+              <label class="form-label">Email hoặc tên đăng nhập</label>
 
               <!-- this is input username or email -->
-              <input th:field="*{usernameOrEmail}" type="text" class="form-control" placeholder="Email hoặc username ..." autocomplete="off">
+              <input th:field="*{usernameOrEmail}" type="text" class="form-control" placeholder="Nhập email hoặc tên đăng nhập" autocomplete="off">
               <!-- this is error for username or email -->
               <i class="error" th:errors="*{usernameOrEmail}"></i>
 
@@ -41,16 +41,16 @@
               <label class="form-label">
                 Mật khẩu
                 <span class="form-label-description">
-                  <a href="/forgot">Quên mật khẩu ?</a>
+                  <a href="/forgot">Quên mật khẩu?</a>
                 </span>
               </label>
               <div class="input-group input-group-flat">
 
                 <!-- this is input password -->
-                <input th:field="*{password}" id="password-login" type="password" class="form-control"  placeholder="Mật khẩu"  autocomplete="off">
+                <input th:field="*{password}" id="password-login" type="password" class="form-control"  placeholder="Nhập mật khẩu"  autocomplete="off">
 
                 <span class="input-group-text">
-                  <a href="#" class="link-secondary">
+                  <a href="javascript:void(0)" class="link-secondary" title="Hiện/ẩn mật khẩu">
                     <!-- icon eye -->
                   <svg xmlns="http://www.w3.org/2000/svg" id="eye-login" width="21" height="21" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
                     <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
@@ -81,7 +81,7 @@
               <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
             </div>
           </div>
-          <div class="hr-text">hoặc</div>
+          <div class="hr-text">hoặc đăng nhập bằng</div>
           <div class="card-body">
             <div class="row">
               <div class="col">
@@ -89,7 +89,7 @@
                   <svg xmlns="http://www.w3.org/2000/svg" style="color: #0d6efd; margin-right: 5px;" width="16" height="16" fill="currentColor" class="bi bi-facebook" viewBox="0 0 16 16">
                     <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
                   </svg>
-                  Đăng ký Facebook
+                  Facebook
                 </a>
               </div>
               <div class="col">
@@ -97,14 +97,14 @@
                   <svg xmlns="http://www.w3.org/2000/svg" style="color: #dc3545; margin-right: 5px;" width="16" height="16" fill="currentColor" class="bi bi-google" viewBox="0 0 16 16">
                     <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z"></path>
                   </svg>
-                  Đăng ký Google
+                  Google
                 </a>
               </div>
             </div>
           </div>
         </form>
         <div class="text-center text-muted mt-3">
-          Bạn đã có tài khoản chưa? <a href="/signup" tabindex="-1">Đăng ký</a>
+          Bạn chưa có tài khoản? <a href="/signup" tabindex="-1">Đăng ký ngay</a>
         </div>
       </div>
     </div>

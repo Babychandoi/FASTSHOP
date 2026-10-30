@@ -42,7 +42,7 @@ public class AddressServiceImpl implements AddressService {
     public void update(String username, Long id) {
         List<Address> list = addressDAO.findAllAddressByAccount(username);
         for (Address address : list) {
-            address.setChoose( (address.getId() == id) );
+            address.setChoose(address.getId().equals(id));
             addressDAO.save(address);
         }
     }

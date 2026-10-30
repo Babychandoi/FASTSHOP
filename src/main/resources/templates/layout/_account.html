@@ -42,18 +42,20 @@
 
         <!-- this is text author name -->
         <div th:text="${auth.account.username}" id="username_"></div>
-        <div class="mt-1 fs-6 text-primary" th:text="${auth.role.id}"></div>
+        <div class="mt-1 fs-6 text-primary" th:text="${auth.role.id == 'USER' ? 'Khách hàng' : (auth.role.id == 'STAFF' ? 'Nhân viên' : (auth.role.id == 'ADMIN' ? 'Quản trị viên' : auth.role.id))}"></div>
       </div>
     </a>
 
 
     <!-- drop down này cho user -->
-    <div th:if="${auth.role.id == 'USER'}" class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" id="account-dropdown-menu-user" style="font-size: 11px !important; vertical-align: middle;">
-      <a href="/user/myorder" class="dropdown-item">1. Quản lý hóa đơn</a>
-      <a href="/profile" class="dropdown-item">2. Tài khoản của tôi</a>
-      <a href="/user/feedback" class="dropdown-item">3. Nhận xét sản phẩm</a>
-      <a href="/user/notify" class="dropdown-item">4. Thông báo của tôi</a>
-      <a href="/registerAsStaff" class="dropdown-item">5. Đăng kí bán hàng</a>
+    <div th:if="${auth.role.id == 'USER'}" class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" id="account-dropdown-menu-user">
+      <a href="/user/myorder" class="dropdown-item">Đơn hàng của tôi</a>
+      <a href="/profile" class="dropdown-item">Tài khoản của tôi</a>
+      <a href="/user/feedback" class="dropdown-item">Đánh giá của tôi</a>
+      <a href="/user/notify" class="dropdown-item">Thông báo</a>
+      <a href="/user/discount" class="dropdown-item">Mã giảm giá</a>
+      <div class="dropdown-divider"></div>
+      <a href="/registerAsStaff" class="dropdown-item">Đăng ký bán hàng</a>
       <div class="dropdown-divider"></div>
       <a href="/logout" class="dropdown-item">
         <svg xmlns="http://www.w3.org/2000/svg" style="color: red;" class="icon icon-tabler icon-tabler-power" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -61,7 +63,7 @@
           <path d="M7 6a7.75 7.75 0 1 0 10 0"></path>
           <line x1="12" y1="4" x2="12" y2="12"></line>
         </svg>
-        Thoát tài khoản
+        Đăng xuất
       </a>
     </div>
 

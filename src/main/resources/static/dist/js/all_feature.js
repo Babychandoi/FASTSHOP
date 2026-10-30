@@ -33,7 +33,9 @@ function onCbChangeCategory(id) {
 // this is function which to focus in search bar
 function checkFocus() {
     var hasFocus = $('#search-gallery').is(':focus');
-    var hasHover = $('.menu-search').is(':hover');
+    // jQuery 3 không hỗ trợ ':hover', dùng matches() của DOM
+    var menu = document.querySelector('.menu-search');
+    var hasHover = menu ? menu.matches(':hover') : false;
     var w = $('.menu-search').width();
     if (hasFocus && w > 700) {
         $(".menu-search").show();

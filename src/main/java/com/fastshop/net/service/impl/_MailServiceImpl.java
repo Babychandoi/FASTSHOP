@@ -10,6 +10,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class _MailServiceImpl implements _MailService{
 	@Autowired
 	JavaMailSender sender;
+	@Value("${app.mail-from}")
+	String defaultFrom;
 	List<MailInfo> list = new ArrayList<>();
 
 	@Override
@@ -30,11 +33,12 @@ public class _MailServiceImpl implements _MailService{
 		MimeMessage message = sender.createMimeMessage();
 		// Sử dụng Helper để thiết lập các thông tin cần thiết cho message
 		MimeMessageHelper helper = new MimeMessageHelper(message, true, "utf-8");
-		helper.setFrom(mail.getFrom());
+		String from = (mail.getFrom() == null || mail.getFrom().isBlank()) ? defaultFrom : mail.getFrom();
+		helper.setFrom(from);
 		helper.setTo(mail.getTo());
 		helper.setSubject(mail.getSubject());
 		helper.setText(mail.getBody(), true);
-		helper.setReplyTo(mail.getFrom());
+		helper.setReplyTo(from);
 		String[] cc = mail.getCc();
 		if(cc != null && cc.length > 0) {
 			helper.setCc(cc);

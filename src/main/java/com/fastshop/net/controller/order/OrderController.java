@@ -3,7 +3,6 @@ package com.fastshop.net.controller.order;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +18,12 @@ import com.fastshop.net.service.ProductService;
 import com.fastshop.net.service.StatusService;
 import com.fastshop.net.service._CookieService;
 import com.fastshop.net.service._GetListFile;
-import com.fastshop.net.service._MailService;
-import com.fastshop.net.utils.ReadFile;
 import com.fastshop.net.service.AccountService;
 import com.fastshop.net.service.AuthorityService;
 import com.fastshop.net.service.CategoryDetailService;
 import com.fastshop.net.service.CategoryService;
 import com.fastshop.net.service.NotifyService;
+import com.fastshop.net.service.OrderDetailService;
 import com.fastshop.net.service.OrderService;
 import com.fastshop.net.service.ProductDetailService;
 
@@ -33,8 +31,6 @@ import com.fastshop.net.service.ProductDetailService;
 public class OrderController {
     @Autowired
     _CookieService cookie;
-    @Autowired
-    _MailService mailService;
     @Autowired
     _GetListFile getListFile;
     @Autowired
@@ -52,33 +48,25 @@ public class OrderController {
     @Autowired
     OrderService orderService;
     @Autowired
+    OrderDetailService orderDetailService;
+    @Autowired
     OrderDetailDAO orderDetailDAO;
     @Autowired
     StatusService statusService;
     @Autowired
     NotifyService notifyService;
 
-    // gửi gmail loại html
-    @RequestMapping("/user/order/accept")
-    public String order(Model model, @ModelAttribute("auth") Authority auth) {
-        try {
-            String email = auth.getAccount().getEmail();
-            String subject = "Hóa đơn Fastshop của " + auth.getAccount().getFullname() + " (" + java.sql.Date.valueOf(LocalDate.now()).toString() +")";
-            String body = new ReadFile().readFile("http://localhost:8000/user/bill");
-            mailService.send(email, subject, body);
-            System.out.println();
-            System.out.println(body);
-            return "redirect:/user/myorder";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
-
     // xem mục quản lý hóa đơn của user
     @RequestMapping("/user/order/{username}/{id}")
     public String getAll(Model model, @ModelAttribute("auth") Authority auth, @PathVariable("id") Integer id, @PathVariable("username") String username) {
-        Account account = accountService.findByUsername(username);
+        if (auth == null) {
+            return "redirect:/login";
+        }
+        // chỉ cho xem đơn hàng của chính mình
+        Account account = auth.getAccount();
+        if (!account.getUsername().equals(username)) {
+            return "redirect:/user/order/" + account.getUsername() + "/" + id;
+        }
         List<Order> orders = orderService.findByStatusAndAccount(id, account);
         try {
             model.addAttribute("page", "user.myorder");
@@ -99,9 +87,17 @@ public class OrderController {
     // id là id của đơn hàng
     @RequestMapping("/user/order/update/{orderid}")
     public String update(@ModelAttribute("auth") Authority auth, @PathVariable("orderid") Long id) {
+        if (auth == null) {
+            return "redirect:/login";
+        }
         Order order = orderService.findById(id);
-        order.setStatus(statusService.findById(-1));
-        orderService.save(order);
+        // khách chỉ được hủy đơn của mình khi đơn chưa được giao đi
+        if (order != null && order.getAccount().getUsername().equals(auth.getAccount().getUsername())
+                && order.getStatus().getId() >= 0 && order.getStatus().getId() <= 2) {
+            orderDetailService.restoreStock(order);
+            order.setStatus(statusService.findById(-1));
+            orderService.save(order);
+        }
         return "redirect:/user/myorder";
     }
 

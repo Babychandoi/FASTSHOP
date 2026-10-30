@@ -8,12 +8,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fastshop.net.security.TokenSigner;
+
 @Service
 public class _CookieService {
     @Autowired
     HttpServletRequest request;
     @Autowired
     HttpServletResponse response;
+    @Autowired
+    TokenSigner signer;
+
+    // cookie đăng nhập được ký để client không thể tự sửa thành tài khoản khác
+    private static final String AUTH_COOKIE = "username";
 
     /**
     * Đọc cookie từ request
@@ -53,7 +60,10 @@ public class _CookieService {
                 }
             }
         }
-        return (c == null) ? null : c.getValue();
+        if (c == null) {
+            return null;
+        }
+        return AUTH_COOKIE.equals(name) ? signer.verify(c.getValue()) : c.getValue();
     }
 
 
@@ -61,12 +71,13 @@ public class _CookieService {
     * Tạo và gửi cookie về client
     * @param name tên cookie
     * @param value giá trị cookie
-    * @param hours thời hạn (giờ)
+    * @param seconds thời hạn (giây)
     * @return đối tượng cookie đã tạo
     */@Transactional
-    public Cookie add(String name, String value, int hours) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setMaxAge(hours*60*60);
+    public Cookie add(String name, String value, int seconds) {
+        Cookie cookie = new Cookie(name, AUTH_COOKIE.equals(name) ? signer.sign(value) : value);
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(seconds);
         cookie.setPath("/");
         response.addCookie(cookie);
         return cookie;
@@ -91,8 +102,8 @@ public class _CookieService {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (cookie.getName().equals("username")) {
-                    return cookie.getValue();
+                if (cookie.getName().equals(AUTH_COOKIE)) {
+                    return signer.verify(cookie.getValue());
                 }
             }
         }

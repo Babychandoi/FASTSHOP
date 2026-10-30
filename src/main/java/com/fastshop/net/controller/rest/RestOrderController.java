@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,11 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fastshop.net.model.Account;
+import com.fastshop.net.model.CheckoutRequest;
 import com.fastshop.net.model.Order;
 import com.fastshop.net.model.OrderDetail;
 import com.fastshop.net.repository.OrderDetailDAO;
 import com.fastshop.net.service.AccountService;
+import com.fastshop.net.service.OrderDetailService;
 import com.fastshop.net.service.OrderService;
+import com.fastshop.net.service._CookieService;
 
 @CrossOrigin("*")
 @RestController
@@ -29,6 +33,10 @@ public class RestOrderController {
     AccountService accountService;
     @Autowired
     OrderDetailDAO orderDetailDAO;
+    @Autowired
+    OrderDetailService orderDetailService;
+    @Autowired
+    _CookieService cookie;
 
     @GetMapping("/rest/orders")
     public List<Order> getAll() {
@@ -67,11 +75,24 @@ public class RestOrderController {
         return orderDetailDAO.findByOrder(order);
     }
 
+    @PostMapping("/rest/orders/checkout")
+    public ResponseEntity<?> checkout(@RequestBody CheckoutRequest request) {
+        Account account = accountService.findByUsername(cookie.getValue("username"));
+        try {
+            return ResponseEntity.ok(orderDetailService.checkout(account, request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/rest/orders")
     public Order create(@RequestBody Order order) {
-        if (!orderService.findAll().contains(order)) {
-            orderService.save(order);
+        order.setId(null);
+        if (order.getCreateDate() == null) {
+            order.setCreateDate(new Date());
         }
+        order.setDateConfirm(null);
+        orderService.save(order);
         return order;
     }
 

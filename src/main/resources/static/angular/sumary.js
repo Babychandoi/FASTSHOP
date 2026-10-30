@@ -1,4 +1,4 @@
-var host_ = "http://localhost:8000/rest";
+var host_ = "/rest";
 var number = document.getElementById("number");       // _mode_cart.html
 var username = document.getElementById("username");   
 var account_ = document.getElementById("username_");  // _account.html
@@ -52,28 +52,14 @@ function convert_vi_to_en(str) {
 };
 
 function changeFree() {
-    var v = document.getElementById("codeFree").value;
-    var url_discount_free = `${host_}/discounts/${v}`;
+    var v = document.getElementById("codeFree").value.trim();
     $("#success_find").css("opacity", "0");
     $("#error_find").css("opacity", "0");
-    $("#find-free").css("display", "block");
-    $("#btn-free").attr("disabled", "disabled");
-
-    setTimeout(() => {
-        $("#find-free").css("display", "none");
-        if (!v) {
-            $("#error_find").css("opacity", "1");
-            $("#error_find").text("(*) Bạn chưa nhập mã giảm giá.");
-            $("#success_find").css("opacity", "0");
-        }
-        else {
-            $("#error_find").css("opacity", "0");
-            $("#success_find").css({"opacity": "1", "color": "#495579"});
-            $("#success_find").text("(*) Đã nhập mã giảm giá. Tiếp tục kiểm tra voucher");
-            $("#btn-free").removeAttr("disabled");
-        }
-    }, 1000);
-    $("#getPathFree").text(url_discount_free);
+    if (v) {
+        $("#btn-free").removeAttr("disabled");
+    } else {
+        $("#btn-free").attr("disabled", "disabled");
+    }
 }
 
 function copyFree(index) {
@@ -94,65 +80,53 @@ app.controller("admin-employee", ($scope, $http) => {
 
 app.controller("history-ctrl", ($scope, $http) => {
     $scope.histories = [];
-    $scope.selectId = [];
-    $scope.getCurrentDate = function() {
-        return new Date();
-      };
+    $scope.selected = {};
+    $scope.all = false;
+    $scope.loaded = false;
 
     $scope.load_histories = () => {
         var url = `${host_}/history/all`;
         $http.get(url).then((resp) => {
-            $scope.histories = resp.data;
+            // mới nhất lên đầu
+            $scope.histories = (resp.data || []).sort((a, b) => String(b.schedual).localeCompare(String(a.schedual)));
+            $scope.loaded = true;
         }).catch((err) => {
+            $scope.loaded = true;
             console.log("Error load histories", err);
         });
     };
 
-    $scope.add = (id) => {
-        var index = $scope.selectId.findIndex(item => item == id);
-        if (index == -1) {
-            $scope.selectId.push(id);
-        }
-        else {
-            $scope.selectId.splice(index, 1);
-        }
+    $scope.selectedIds = () => $scope.histories.filter(h => $scope.selected[h.id]).map(h => h.id);
+
+    $scope.choose_all = () => {
+        $scope.histories.forEach(h => { $scope.selected[h.id] = $scope.all; });
+    };
+
+    $scope.syncAll = () => {
+        $scope.all = $scope.histories.length > 0 && $scope.selectedIds().length == $scope.histories.length;
+    };
+
+    var drop = (id) => {
+        var index = $scope.histories.findIndex(item => item.id == id);
+        if (index >= 0) $scope.histories.splice(index, 1);
+        delete $scope.selected[id];
+        $scope.syncAll();
     };
 
     $scope.remove = (id) => {
-        var url = `${host_}/history/${id}`;
-        $http.delete(url).then((resp) => {
-            var index = $scope.histories.findIndex(item => item.id == id);
-            $scope.histories.splice(index, 1);
-            console.log("Xoa thanh cong " + id, resp);
-        });
+        if (!confirm("Xóa mục lịch sử này?")) return;
+        $http.delete(`${host_}/history/${id}`).then(() => drop(id))
+            .catch(() => alert("Không xóa được, vui lòng thử lại."));
     };
 
     $scope.delete = () => {
-        if ($scope.selectId.length > 0) {
-            $scope.selectId.forEach(id => {
-                var url = `${host_}/history/${id}`;
-                $http.delete(url).then((resp) => {
-                    var index = $scope.histories.findIndex(item => item.id == id);
-                    $scope.histories.splice(index, 1);
-                    $scope.all = false;
-                });
-            });
-        }
-        else {
-            alert("Choose some history to delete");
-        }
-    };
-
-    $scope.choose_all = () => {
-        if ($scope.all) {
-            $scope.histories.forEach(h => {
-                $scope.selectId.push(h.id);
-            });
-        }
-        else {
-            $scope.selectId = [];
-        }
-        console.log($scope.selectId.length);
+        var ids = $scope.selectedIds();
+        if (ids.length == 0) return;
+        if (!confirm("Xóa " + ids.length + " mục lịch sử đã chọn?")) return;
+        ids.forEach(id => {
+            $http.delete(`${host_}/history/${id}`).then(() => drop(id))
+                .catch(() => alert("Không xóa được mục #" + id + "."));
+        });
     };
 
     $scope.load_histories();
@@ -174,32 +148,24 @@ app.controller('chart-ctrl', ($scope, $http) => {
 							$scope.chartInstance.destroy();
 						}
 						$scope.chartInstance = new Chart(ctx, {
-							type: 'line',
+							type: 'bar',
 							data: {
-								labels: $scope.titles.map(item => item.group.name),
+								labels: $scope.titles.map(item => (item.group && item.group.name) || item.group),
 								datasets: [
 									{
-										label: 'Phân loại hàng',
+										label: 'Số lượt bán theo loại hàng',
 										data: $scope.titles.map(item => item.count),
-										backgroundColor: [
-											'rgba(255, 99, 132, 0.2)',
-											'rgba(54, 162, 235, 0.2)',
-											'rgba(255, 206, 86, 0.2)',
-											'rgba(75, 192, 192, 0.2)',
-										],
-										borderColor: [
-											'rgba(255, 99, 132, 1)',
-											'rgba(54, 162, 235, 1)',
-											'rgba(255, 206, 86, 1)',
-											'rgba(75, 192, 192, 1)',
-										],
-										borderWidth: 1,
+										backgroundColor: 'rgba(32, 107, 196, 0.75)',
+										borderRadius: 4,
+										maxBarThickness: 42,
 									},
 								],
 							},
 							options: {
 								responsive: true,
 								maintainAspectRatio: true,
+								plugins: { legend: { display: false } },
+								scales: { y: { beginAtZero: true } }
 							}
 						});
 					} else {
@@ -269,20 +235,22 @@ app.controller('chart2-ctrl', ($scope, $http) => {
         }
         
         try {
-            var total = $scope.revenue.total;
             var data = google.visualization.arrayToDataTable([
-                ['Năm', 'Doanh thu'],
-                ['Doanh thu năm ' + (new Date().getFullYear() - 4), ($scope.revenue.item[4] || 0) * 100 / total],
-                ['Doanh thu năm ' + (new Date().getFullYear() - 3), ($scope.revenue.item[3] || 0) * 100 / total],
-                ['Doanh thu năm ' + (new Date().getFullYear() - 2), ($scope.revenue.item[2] || 0) * 100 / total],
-                ['Doanh thu năm ' + (new Date().getFullYear() - 1), ($scope.revenue.item[1] || 0) * 100 / total],
-                ['Doanh thu năm ' + (new Date().getFullYear() - 0), ($scope.revenue.item[0] || 0) * 100 / total]
+                ['Năm', 'Doanh thu ($)'],
+                ['Năm ' + (new Date().getFullYear() - 4), $scope.revenue.item[4] || 0],
+                ['Năm ' + (new Date().getFullYear() - 3), $scope.revenue.item[3] || 0],
+                ['Năm ' + (new Date().getFullYear() - 2), $scope.revenue.item[2] || 0],
+                ['Năm ' + (new Date().getFullYear() - 1), $scope.revenue.item[1] || 0],
+                ['Năm ' + (new Date().getFullYear() - 0), $scope.revenue.item[0] || 0]
             ]);
             var chart = new google.visualization.PieChart(chartDiv);
             chart.draw(data, {
-                width: '100%',
-                height: 500,
-                is3D: true
+                height: 360,
+                pieHole: 0.45,
+                chartArea: { left: 16, top: 16, width: '92%', height: '88%' },
+                legend: { position: 'right', alignment: 'center', textStyle: { fontSize: 13 } },
+                colors: ['#a8c5ea', '#79a6dc', '#4a86cf', '#206bc4', '#174e8f'],
+                fontName: 'inherit'
             });
         } catch (error) {
             console.log('Error drawing chart:', error);
@@ -342,13 +310,20 @@ app.controller("atm-ctrl", ($scope, $http) => {
     });
 
     $scope.them = () => {
+        $scope.errorNumber = "";
+        $scope.errorSelect = "";
+        if ($scope.atm.company == "" || $scope.atm.company == undefined) {
+            $scope.errorSelect = "(*) Vui lòng chọn ngân hàng";
+        }
         if ($scope.atm.number == "" || $scope.atm.number == undefined) {
             $scope.errorNumber = "(*) Vui lòng nhập số tài khoản";
         }
-        else if ($scope.atm.company == "" || $scope.atm.company == undefined) {
-            $scope.errorNumber = "";
-            $scope.errorSelect = "(*) Vui lòng chọn ngân hàng";
-        } 
+        else if (!/^[0-9 ]{6,25}$/.test($scope.atm.number)) {
+            $scope.errorNumber = "(*) Số tài khoản chỉ gồm chữ số (6–25 ký tự)";
+        }
+        if ($scope.errorNumber || $scope.errorSelect) {
+            return;
+        }
         else {
             $scope.errorNumber = "";
             $scope.errorSelect = "";
@@ -356,12 +331,12 @@ app.controller("atm-ctrl", ($scope, $http) => {
             $("#load-page").css("display", "block");
 
 
-            setInterval(() => {
-                $http.post(url_c, $scope.atm).then((resp) => {
-                    $("#load-page").css("display", "none");
-                    window.location.href = "http://localhost:8000/user/wallet";
-                }).catch((err) => {});
-            }, 3000);
+            $http.post(url_c, $scope.atm).then((resp) => {
+                window.location.href = "/user/wallet";
+            }).catch((err) => {
+                $("#load-page").attr("style", "display: none !important;");
+                $scope.errorNumber = "(*) Không thể lưu thẻ, số tài khoản có thể đã tồn tại.";
+            });
         }
     };
 
@@ -400,11 +375,23 @@ app.controller("cart-ctrl", ($scope, $http) => {
     $scope.cart = {
         items: [],
 
-        add(id_product) {
+        // goCheckout = true: "Mua ngay" -> chỉ chuyển trang sau khi đã lưu giỏ hàng
+        add(id_product, goCheckout) {
+            var done = () => {
+                if (goCheckout) {
+                    window.location.href = "/user/checkout";
+                } else {
+                    if (typeof window.add === "function") window.add(true);   // toast "Thêm sản phẩm thành công" (all_feature.js)
+                }
+            };
             var item = this.items.find(item => item.id == id_product);
             if (item) {
                 item.qty += $scope.qty;
+                if (item.number > 0 && item.qty > item.number) {
+                    item.qty = item.number;
+                }
                 this.saveToLocalStorage();
+                done();
             }
             else {
                 $http.get(`${host_}/products/${id_product}`).then(resp => {
@@ -412,7 +399,8 @@ app.controller("cart-ctrl", ($scope, $http) => {
                     this.items.push(resp.data);
                     this.saveToLocalStorage();
                     number.innerHTML = Number(number.innerHTML) + 1;   // để mặc định number sẽ là $scope.count (+1) để hiện 1 ngay - nó sẽ là localStorage đang giữ bao nhiêu item, nên ko nhất định là 1;
-                })
+                    done();
+                }).catch(() => alert("Không thêm được sản phẩm vào giỏ hàng, vui lòng thử lại."));
             }
         },
 
@@ -439,6 +427,7 @@ app.controller("cart-ctrl", ($scope, $http) => {
 });
 
 // cái này là để hiển thị danh sách sản phẩm và thanh toán luôn
+var SHIP_FEE = 1.2;
 app.controller("checkout-ctrl", ($scope, $http) => {
     var date = new Date().toLocaleDateString("en-CA").toString();
 
@@ -515,13 +504,21 @@ app.controller("checkout-ctrl", ($scope, $http) => {
                        .reduce((total, qty) => total += qty,0);
         },
 
-        get amountDeliver() {
-            var tongtien = Number(this.amount + 1.2);
-            if ($scope.discount_add_voucher.free == undefined || $scope.discount_add_voucher.free == null || $scope.discount_add_voucher.free < 10) {
-                return tongtien;
-            } else {
-                return tongtien - tongtien * $scope.discount_add_voucher.free / 100;
+        // Số tiền được giảm bởi voucher (theo % hoặc tiền mặt)
+        get discountAmount() {
+            var v = $scope.discount_add_voucher || {};
+            var tongtien = Number(this.amount + SHIP_FEE);
+            if (v.free > 0) {
+                return tongtien * v.free / 100;
             }
+            if (v.dolar > 0) {
+                return Math.min(v.dolar, tongtien);
+            }
+            return 0;
+        },
+
+        get amountDeliver() {
+            return Number(this.amount + SHIP_FEE) - this.discountAmount;
         },
 
         // Lưu giỏ hàng vào local storage
@@ -539,43 +536,38 @@ app.controller("checkout-ctrl", ($scope, $http) => {
     $scope.cart.loadFromLocalStorage();
 
     $scope.confirmFree = () => {
-        $("#success_find").css("opacity", "0");
+        var code = $("#codeFree").val().trim();
+        var showError = (msg) => {
+            $("#find-free").css("display", "none");
+            $("#error_find").text(msg).css("opacity", "1");
+            $("#success_find").css("opacity", "0");
+        };
+        if (!code) {
+            return showError("(*) Bạn chưa nhập mã giảm giá.");
+        }
         $("#error_find").css("opacity", "0");
         $("#find-free").css("display", "block");
-
-        var path = $("#getPathFree").text();
-        
-        if ($('#btn-free').prop('disabled', false)) {
-            setTimeout(() => {
-                $http.get(path).then((resp) => {
-                    $("#find-free").css("display", "none");
-                    $scope.discount_add_voucher = resp.data;
-                    if (!$scope.discount_add_voucher) {
-                        $("#error_find").css("opacity", "1");
-                        $("#error_find").text("(*) Mã giảm giá không tồn tại.");
-                        $("#success_find").css("opacity", "0");
-                        $("#btn-free").attr("disabled", "disabled");
-                    }
-                    else if ($scope.discount_add_voucher && (new Date($scope.discount_add_voucher.dateEnd) < new Date()) ) {
-                        $("#error_find").css("opacity", "1");
-                        $("#error_find").text("(*) Mã giảm giá đã hết hạn sử dụng.");
-                        $("#success_find").css("opacity", "0");
-                        $("#btn-free").attr("disabled", "disabled");
-                    }
-                    else {
-                        $("#error_find").css("opacity", "0");
-                        $("#success_find").css({"opacity": "1", "color": "#379237"});
-                        $("#success_find").text("(*) Đã nhập thành công voucher.");
-                        $("#btn-free").css("display", "none");
-                        $("#codeFree").attr("disabled", "disabled");
-                        $("#btn-enter-free").text($scope.discount_add_voucher.id);
-                        $scope.form.total = Math.round($scope.cart.amountDeliver * 100) / 100;
-                    }
-                }).catch((err) => { 
-                    console.log(err);
-                });
-            }, 3000);
-        }
+        $http.get(`${host_}/discounts/${encodeURIComponent(code)}`).then((resp) => {
+            var v = resp.data;
+            var today = new Date().toLocaleDateString("en-CA");
+            if (!v) {
+                return showError("(*) Mã giảm giá không tồn tại.");
+            }
+            if (String(v.dateFrom).substring(0, 10) > today) {
+                return showError("(*) Mã giảm giá chưa đến thời gian sử dụng.");
+            }
+            if (String(v.dateEnd).substring(0, 10) < today) {
+                return showError("(*) Mã giảm giá đã hết hạn sử dụng.");
+            }
+            if (v.number != null && v.number <= 0) {
+                return showError("(*) Mã giảm giá đã hết lượt sử dụng.");
+            }
+            $scope.discount_add_voucher = v;
+            $("#find-free").css("display", "none");
+            $("#success_find").text("(*) Đã áp dụng mã giảm " + (v.free > 0 ? v.free + "%" : "$" + v.dolar) + ".")
+                              .css({"opacity": "1", "color": "#379237"});
+            $("#btn-enter-free").text(v.id);
+        }).catch(() => showError("(*) Không kiểm tra được mã giảm giá, vui lòng thử lại."));
     }
 
     // ---------------------------------------------------------
@@ -602,73 +594,41 @@ app.controller("checkout-ctrl", ($scope, $http) => {
 
 
     $scope.orderNow = {};
+    $scope.ordering = false;
 
     $scope.order = {
-        thread1(){
-            var url = `${host_}/orders`;
-            $("#load-page").css("display", "block");
-            setTimeout(() => {
-                $http.post(url, $scope.form).then((resp) => {
-                    $scope.orderNow = resp.data;
-                    console.log($scope.orderNow);
-                }).catch((err) => {
-                    console.log("Order failed", err);
-                });
-            }, 2000);
+        thread1() {
+            if ($scope.ordering) {
+                return;
+            }
+            if ($scope.cart.items.length == 0) {
+                alert("Giỏ hàng của bạn đang trống.");
+                return;
+            }
+            if (!$scope.form.address || !$scope.form.address.trim()) {
+                alert("Vui lòng chọn địa chỉ giao hàng trước khi đặt hàng.");
+                return;
+            }
+            $scope.ordering = true;
+            $("#load-page").attr("style", "background-color: rgba(0,0,0,.5); height: 100vh; position: fixed; top:0; left:0; z-index: 2000;");
 
-            setTimeout(() => {
-                this.thread2();
-            }, 4000);
-
-            setTimeout(() => {
-                this.thread3();
-            }, 5000);
-        },
-        thread2(){
-            for (var item of $scope.cart.items) {
-                $scope.detail = {
-                    "product": {
-                        "id": item.id,
-                        "name": item.name,
-                        "image": item.image,
-                        "price": item.price,
-                        "createDate": item.createDate,
-                        "available": item.available,
-                        "number": item.number,
-                        "category": item.category,
-                        "describe": item.describe,
-                        "discount": item.discount
-                    },
-                    "order": $scope.orderNow,
-                    "quantity": item.qty
-                };
-
-                var url_orderdetails = `${host_}/orderdetails`;
-                var record = angular.copy($scope.detail);
-                $http.post(url_orderdetails, record).then((resp) => {
-                    console.log("- "+ item.id + " ok", resp);
-                }).catch((err) => {
-                    console.log(item.id + " failed", err);
-                });
+            // server tự tính giá, tổng tiền, voucher và trừ tồn kho trong 1 giao dịch
+            var request = {
+                "address": $scope.form.address,
+                "voucher": ($scope.discount_add_voucher && $scope.discount_add_voucher.id) || null,
+                "items": $scope.cart.items.map((item) => ({ "productId": item.id, "quantity": item.qty }))
             };
 
-            localStorage.removeItem(id);
-        },
-        thread3() {
-            $scope.notify = {
-                "title"    : "Bạn đã đặt hàng #" + $scope.orderNow.id + " vào " + $scope.orderNow.createDate + " thành công. Hãy kiểm tra tin nhắn trong gmail.",
-                "fileName" : "- Tin nhắn thông báo -",
-                "sentDate" : "2022-12-10",
-                "status"   : true,
-                "account"  : $scope.orderNow.account
-            };
-            var url_notify_1 = `${host_}/notifications`;
-            $http.post(url_notify_1, $scope.notify).then((resp) => {
-                console.log("notify ok", resp);
+            $http.post(`${host_}/orders/checkout`, request).then((resp) => {
+                $scope.orderNow = resp.data;
+                localStorage.removeItem(id);
+                window.location.href = "/user/myorder";
             }).catch((err) => {
-                console.log("notify failed", err);
+                console.log("Order failed", err);
+                $scope.ordering = false;
+                $("#load-page").attr("style", "display: none !important;");
+                alert((err && typeof err.data === "string" && err.data) ? err.data : "Đặt hàng thất bại, vui lòng thử lại.");
             });
-            window.location.href = "http://localhost:8000/fastshop.com";
         }
     }
 });
@@ -809,7 +769,7 @@ app.controller("product-ctrl", ($scope, $http) => {
         
         $http.put(url_p_u, item).then((resp) => {
             console.log("Update ok", resp);
-            window.location.href = "http://localhost:8000/staff/products";
+            window.location.href = "/staff/products";
         }).catch((err) => {
             console.error("Error updating product:", err);
             var errorMsg = "Lỗi khi cập nhật sản phẩm";
@@ -823,16 +783,16 @@ app.controller("product-ctrl", ($scope, $http) => {
     };
 
     $scope.delete = (id) => {
+        if (!confirm("Ngừng bán sản phẩm này? Sản phẩm sẽ bị ẩn khỏi cửa hàng và tồn kho về 0.")) return;
         var item = angular.copy($scope.form);
         item.available = false;
         item.number = 0;
         var url = `${host_}/products/${id}`;
         $http.put(url, item).then((resp) => {
-            console.log("delete success", resp);
+            window.location.href = "/staff/products";
         }).catch((err) => {
-            console.log("error", err);
+            alert("Không thể ngừng bán sản phẩm này.");
         });
-        window.location.href = "http://localhost:8000/staff/products";
     };
 });
 
@@ -914,7 +874,7 @@ app.controller("keyword-ctrl", ($scope, $http) => {
                 localStorage.setItem("keywords", JSON.stringify($scope.keywords));
 
                 // go head a any page with URL + kw
-                window.location.href = "http://localhost:8000/user/search?keyword=" +$scope.keysearch; 
+window.location.href = "/user/search?keyword=" + encodeURIComponent($scope.keysearch);
             }
        });
     };
@@ -966,7 +926,7 @@ app.controller("keyword-ctrl", ($scope, $http) => {
         var cateId = String($scope.map_filter["cateId"]);
         var priceFrom = Number($scope.map_filter["priceFrom"]);
         var priceTo = Number($scope.map_filter["priceTo"]);
-        var url = `http://localhost:8000/user/filter?rate=${rate}&cateId=${cateId}&priceFrom=${priceFrom}&priceTo=${priceTo}`;
+var url = `/user/filter?rate=${rate}&cateId=${encodeURIComponent(cateId)}&priceFrom=${priceFrom}&priceTo=${priceTo}`;
         window.location.href = url;
     };
 
@@ -981,29 +941,20 @@ app.controller("changed-ctrl", ($scope, $http) => {
     $scope.error3 = "";
 
     $scope.change = () => {
-        var id = account_.innerHTML;
-        var url = `${host_}/accounts/${id}`;
-        $http.get(url).then((resp) => {
-            $scope.account = resp.data;
-
-            $scope.error1 = ($scope.pass1 == "" || $scope.pass1 == NaN) ? "(*) Password hiện tại không được để trống." :
-                            (!angular.equals($scope.pass1, $scope.account.password)) ? "(*) Password hiện tại không chính xác": "" ;
-            
-            $scope.error2 = ($scope.pass2 == "" || $scope.pass2 == NaN) ? "(*) Password mới không được để trống." : "" ;
-            $scope.error3 = ($scope.pass3 == "" || $scope.pass3 == NaN) ? "(*) Xác nhận password không được để trống." : 
-                            ($scope.pass2       != $scope.pass3) ? "(*) Mật khẩu xác nhận không trùng nhau."                 : "" ;
-            
-
-            if ($scope.error1 == "" && $scope.error2 == "" && $scope.error3 == "") {
-                $scope.account.password = $scope.pass3;
-                var item = angular.copy($scope.account);
-                $http.put(url, item).then((resp) => {
-                    alert("Đổi mật khẩu thành công", resp);
-                    window.location.href = window.location.href;
-                }).catch((err) => {
-                    
-                });
-            }
+        $scope.error1 = !$scope.pass1 ? "(*) Vui lòng nhập mật khẩu hiện tại." : "";
+        $scope.error2 = !$scope.pass2 ? "(*) Vui lòng nhập mật khẩu mới." :
+                        ($scope.pass2.length < 6) ? "(*) Mật khẩu mới phải có ít nhất 6 ký tự." : "";
+        $scope.error3 = !$scope.pass3 ? "(*) Vui lòng nhập lại mật khẩu mới." :
+                        ($scope.pass2 != $scope.pass3) ? "(*) Mật khẩu xác nhận không trùng nhau." : "";
+        if ($scope.error1 || $scope.error2 || $scope.error3) {
+            return;
+        }
+        var url = `${host_}/accounts/${account_.innerHTML}/password`;
+        $http.post(url, { currentPassword: $scope.pass1, newPassword: $scope.pass2 }).then(() => {
+            alert("Đổi mật khẩu thành công");
+            window.location.reload();
+        }).catch((err) => {
+            $scope.error1 = (err && typeof err.data === "string") ? err.data : "(*) Không đổi được mật khẩu, vui lòng thử lại.";
         });
     };
 });
@@ -1011,7 +962,7 @@ app.controller("changed-ctrl", ($scope, $http) => {
 app.controller("comment-ctrl", ($scope, $http) => {
 	let productid;
 	let username;
-    localStorage.setItem("rate", 1);
+    localStorage.removeItem("rate");   // bắt buộc khách chọn số sao trước khi gửi
 	$scope.form = {
 		product: {},
 		account: {},
@@ -1020,12 +971,10 @@ app.controller("comment-ctrl", ($scope, $http) => {
 		rate: Number(localStorage.getItem("rate"))
 	};
 
-	setTimeout(() => {
-		productid = document.getElementById('productId').value;
-		username = document.getElementById('username').value;
-	}, 2000);
+	productid = (document.getElementById('productId') || {}).value;
+	username = (document.getElementById('username') || {}).value;
 
-	setTimeout(() => {
+	if (productid && username) {
 		$http
 			.get(`${host_}/products/${productid}`)
 			.then((resp) => {
@@ -1040,28 +989,34 @@ app.controller("comment-ctrl", ($scope, $http) => {
 			.then((resp) => {
 				$scope.form.account = resp.data;
 			})
-			.catch((err) => {
-				console.log('Account cannot account', err);
-			});
-	}, 2000);
+				.catch((err) => {
+					console.log('Account cannot account', err);
+				});
+	}
 
 	$scope.create = () => {
-        $("#load-page").css("display", "block");
-        setTimeout(() => {
-            var url = `${host_}/comments`;
-            $scope.form.rate = Number(localStorage.getItem("rate"));
-            $scope.form.feedback = document.getElementById('content-evaluate').value;
-            var item = angular.copy($scope.form);
+        var url = `${host_}/comments`;
+        $scope.form.rate = Number(localStorage.getItem("rate")) || 0;
+        $scope.form.feedback = document.getElementById('content-evaluate').value.trim();
+        $scope.form.datePost = getDateNow();
+        if ($scope.form.rate < 1 || $scope.form.rate > 5) {
+            alert("Vui lòng chọn số sao đánh giá.");
+            return;
+        }
+        if (!$scope.form.feedback) {
+            alert("Vui lòng nhập nội dung đánh giá.");
+            return;
+        }
+        var item = angular.copy($scope.form);
 
-            $http.post(url, item).then((resp) => {
-                    localStorage.removeItem("rate");
-                    window.location.href = 'http://localhost:8000/user/detail/' + productid;
-                })
-                .catch((err) => {
-                    result = false;
-                    console.log('Comment failed !', err);
-                });
-        }, 3000);
+        $http.post(url, item).then((resp) => {
+                localStorage.removeItem("rate");
+                window.location.href = '/user/detail/' + productid;
+            })
+            .catch((err) => {
+                console.log('Comment failed !', err);
+                alert("Không gửi được đánh giá, vui lòng thử lại.");
+            });
 	};
 });
 
@@ -1069,6 +1024,16 @@ app.controller("detail-staff", ($scope, $http) => {
 
     var productId = $("#id_product_staff").val();
     $scope.productdetails = [];
+    $scope.saving = false;
+    $scope.saved = false;
+    try {
+        $scope.saved = sessionStorage.getItem("detailSaved") == productId;
+        sessionStorage.removeItem("detailSaved");
+    } catch (e) {}
+    var reloadAfterSave = () => {
+        try { sessionStorage.setItem("detailSaved", productId); } catch (e) {}
+        window.location.href = "/staff/detail/" + productId;
+    };
 
 
     // false là mặc định chưa có gì trong info
@@ -1087,127 +1052,166 @@ app.controller("detail-staff", ($scope, $http) => {
     });
 
     $scope.add = () => {
-        $scope.productdetails.forEach(item => {
-            var productDetail = {};
-            productDetail.categoryDetailId = item.categoryDetailId;
-            productDetail.info = item.info;
-            productDetail.productId = item.productId;
-            productDetail = angular.copy(productDetail);
-
-            if ($scope.confirm == false) {
-                var path = `${host_}/product/detail`;
-                $http.post(path, productDetail).then((resp) => {
-                    console.log("Add thanh cong", resp);
-                }).catch((err) => {
-                    console.log("Add failed", err);
-                });
-            }
+        $scope.saving = true;
+        var requests = $scope.productdetails.map(item => $http.post(`${host_}/product/detail`, {
+            categoryDetailId: item.categoryDetailId,
+            info: item.info,
+            productId: item.productId
+        }));
+        Promise.all(requests).then(reloadAfterSave).catch(() => {
+            alert("Không lưu được thông số, vui lòng thử lại.");
+            window.location.href = "/staff/detail/" + productId;
         });
-        window.location.href = "http://localhost:8000/staff/detail/" + productId; 
     };
 
 
     // đây là hàm update từng productdetail
     $scope.update = () => {
-        $scope.productdetails.forEach(item => {
-            var productDetail = {};
-            productDetail.id = item.id;
-            productDetail.categoryDetailId = item.categoryDetailId;
-            productDetail.info = item.info;
-            productDetail.productId = item.productId;
-            productDetail = angular.copy(productDetail);
-
-            if ($scope.confirm == true) {
-                var path = `${host_}/product/detail/update/${item.id}`;
-                $http.put(path, productDetail).then((resp) => {
-                    console.log("Update thanh cong", resp);
-                }).catch((err) => {
-                    console.log("Update failed", err);
-                });
-            }
+        $scope.saving = true;
+        var requests = $scope.productdetails.map(item => {
+            var productDetail = {
+                id: item.id,
+                categoryDetailId: item.categoryDetailId,
+                info: item.info,
+                productId: item.productId
+            };
+            return item.id
+                ? $http.put(`${host_}/product/detail/update/${item.id}`, productDetail)
+                : $http.post(`${host_}/product/detail`, productDetail);
         });
-        window.location.href = "http://localhost:8000/staff/detail/" + productId; 
+        Promise.all(requests).then(reloadAfterSave).catch(() => {
+            alert("Không lưu được thông số, vui lòng thử lại.");
+            window.location.href = "/staff/detail/" + productId;
+        });
     };
 });
 
 app.controller("discount-ctrl", ($scope, $http) => {
-    $scope.now = getDateNow(null);
+    // ngày dạng yyyy-MM-dd theo giờ máy (tránh lệch múi giờ khi gửi lên server)
+    var isoDate = (days) => {
+        var d = new Date();
+        d.setDate(d.getDate() + (Number(days) || 0));
+        var m = d.getMonth() + 1, day = d.getDate();
+        return d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (day < 10 ? "0" + day : day);
+    };
+    $scope.today = isoDate(0);
     $scope.discounts = [];
     $scope.error = "";
-    $scope.numberDay = 0;
-    $scope.code_ = "...";
+    $scope.numberDay = 7;
+    $scope.saving = false;
 
-    
     var all = `${host_}/discounts/all`;
     $http.get(all).then((resp) => {
         $scope.discounts = resp.data;
     }).catch((err) => {});
 
+    // trạng thái hiệu lực của mã
+    $scope.state = (n) => {
+        var from = String(n.dateFrom || "").substring(0, 10), end = String(n.dateEnd || "").substring(0, 10);
+        if (end && end < $scope.today) return "expired";
+        if (from && from > $scope.today) return "upcoming";
+        return "active";
+    };
+
     $scope.code = {
         "id": "",
-        "dateFrom": new Date(getDateNow(null)),
-        "dateEnd": new Date(getDateNow(Number($scope.numberDay))),
+        "dateFrom": isoDate(0),
+        "dateEnd": isoDate($scope.numberDay),
         "free": "",
         "dolar": null,
-        "number": 0
+        "number": null
     };
 
     $scope.randomCode = () => {
-        var length = 19;
-        $scope.code_ = "";
-        for (var i = 1; i <= length; i++) {
-            var random = Math.floor((Math.random() * 9) + 1);
-            $scope.code_ += (i%5==0) ? "-" : String(random);
+        var code = "";
+        for (var i = 1; i <= 19; i++) {
+            code += (i % 5 == 0) ? "-" : String(Math.floor((Math.random() * 9) + 1));
         }
-        $scope.code.id = $scope.code_;
+        $scope.code.id = code;
     };
 
     // this is function to update days when change number discount
     $scope.changeDate = () => {
-        $scope.code.dateEnd = new Date(getDateNow(Number($scope.numberDay)));
+        $scope.code.dateEnd = isoDate($scope.numberDay);
     };
 
     $scope.check = () => {
         $scope.error = "";
-        if ($scope.code_ == "") {
-            $scope.error = "(*) Vui lòng tạo mã giảm giá ngay.";
+        if (!$scope.code.id) {
+            $scope.error = "Vui lòng bấm “Tạo mã nhanh” để sinh mã giảm giá.";
         }
-        else if ($scope.code.number <= 0 || $scope.code.number == null) {
-            $scope.error = "(*) Số lượng phải lớn hơn 0.";
+        else if ($scope.code.number == null || $scope.code.number <= 0) {
+            $scope.error = "Số lượng voucher phải lớn hơn 0.";
         }
-        else if ($scope.numberDay <= 0 || $scope.numberDay == null) {
-            $scope.error = "(*) Số ngày không thể nhập số âm.";
+        else if ($scope.numberDay == null || $scope.numberDay <= 0) {
+            $scope.error = "Số ngày hiệu lực phải lớn hơn 0.";
         }
-        else if (($scope.code.free == null || $scope.code.free == "") && ($scope.code.dolar <= 0 || $scope.code.dolar == null)) {
-            $scope.error = "(*) Chưa có giá trị giảm của discount.";
+        else if ($scope.code.free == null || $scope.code.free === "") {
+            $scope.error = "Vui lòng chọn mức giảm giá.";
         }
-        else if ($scope.code.free == "money" && ($scope.code.dolar <= 0 || $scope.code.dolar == null)) {
-            $scope.error = "(*) Chưa có giá trị giảm tiền mặt.";
+        else if ($scope.code.free == "money" && ($scope.code.dolar == null || $scope.code.dolar <= 0)) {
+            $scope.error = "Vui lòng nhập số tiền giảm (USD) lớn hơn 0.";
         }
         else {
-            $scope.error = "";
-            $scope.code.free = ($scope.code.free == "money") ? "" : $scope.code.free;
-            var url = `${host_}/discounts`;
             var item = angular.copy($scope.code);
-            $http.post(url, item).then((resp) => {
-                console.log("Discount ok", resp);
+            if (item.free == "money") { item.free = null; } else { item.free = Number(item.free); item.dolar = null; }
+            item.dateFrom = isoDate(0);
+            item.dateEnd = isoDate($scope.numberDay);
+            $scope.saving = true;
+            $http.post(`${host_}/discounts`, item).then((resp) => {
+                window.location.href = "/staff/discount";
             }).catch((err) => {
-                console.log("Fail dscount", err);
+                $scope.saving = false;
+                $scope.error = "Không thể tạo mã giảm giá, vui lòng thử lại.";
             });
-            window.location.href = "http://localhost:8000/staff/discount";
         }
     };
-    
 });
 
 app.controller("staffhome-ctrl", ($scope, $http) => {
     $scope.orders = [];
+    $scope.results = [];
+    $scope.counts = {};
+    $scope.loaded = false;
+    $scope.search = { keyword: "", from: null, to: null };
+    $scope.statusClass = { "0": "bg-azure-lt", "1": "bg-blue-lt", "2": "bg-orange-lt", "3": "bg-purple-lt", "4": "bg-green-lt", "-1": "bg-red-lt" };
+
+    var toIso = (d) => {
+        if (!d) return null;
+        var m = d.getMonth() + 1, day = d.getDate();
+        return d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (day < 10 ? "0" + day : day);
+    };
+
+    // tìm kiếm đơn hàng ở mọi trạng thái (mới nhất trước)
+    $scope.doSearch = () => {
+        var kw = ($scope.search.keyword || "").trim().toLowerCase().replace(/^#/, "");
+        var from = toIso($scope.search.from), to = toIso($scope.search.to);
+        $scope.results = $scope.orders.filter(o => {
+            var date = String(o.createDate || "").substring(0, 10);
+            if (from && date < from) return false;
+            if (to && date > to) return false;
+            if (!kw) return true;
+            var acc = o.account || {};
+            return [o.id, acc.fullname, acc.username, acc.email, acc.phone, o.address]
+                .join(" ").toLowerCase().indexOf(kw) >= 0;
+        });
+        // đơn trùng đúng mã được đưa lên đầu
+        var exact = $scope.results.findIndex(o => String(o.id) === kw);
+        if (exact > 0) $scope.results.unshift($scope.results.splice(exact, 1)[0]);
+    };
+
     var url = `${host_}/orders`;
     $http.get(url).then((resp) => {
-        $scope.orders = resp.data;
-    }).catch((err) => {});
-
-    $scope.length = 0;
+        $scope.orders = (resp.data || []).slice().sort((a, b) => b.id - a.id);
+        $scope.orders.forEach(o => {
+            var s = o.status ? o.status.id : null;
+            $scope.counts[s] = ($scope.counts[s] || 0) + 1;
+        });
+        $scope.loaded = true;
+        $scope.doSearch();
+    }).catch((err) => {
+        $scope.loaded = true;
+    });
 });
 
 app.controller("mode-cart-ctrl", ($scope, $http) => {
@@ -1232,24 +1236,43 @@ app.controller("mode-cart-ctrl", ($scope, $http) => {
     $scope.update_status = (id) => {
         var url_id = `${host_}/notifications/notify/${id}`;
 
-        $scope.notify = {};
+        $http.put(url_id).then(() => {
+            if (window.location.href.includes("admin")) {
+                window.location.href = "/admin/history";
+            }
+            else {
+                window.location.reload();
+            }
+        }).catch((err) => {});
+    };
+});
 
-        setTimeout(() => {
-            $http.get(url_id).then((resp) => {
-                $scope.notify = resp.data;
-            }).catch((err) => {});    
-        }, 200);
-        
+// danh sách mã giảm giá còn dùng được cho khách hàng (trang Mã giảm giá / Khuyến mãi)
+app.controller("voucher-ctrl", ($scope, $http) => {
+    $scope.vouchers = [];
+    $scope.loaded = false;
+    $scope.copied = null;
 
-        setTimeout(() => {
-            $http.put(url_id).then(() => {
-                if (window.location.href.includes("admin")) {
-                    window.location.href = "http://localhost:8000/admin/history";
-                }
-                else if (window.location.href.includes("staff")) {
-                    window.location.href = window.location.href;
-                }
-            }).catch((err) => {});
-        }, 300);
+    $http.get(`${host_}/discounts/unexpiry`).then((resp) => {
+        var today = new Date().toLocaleDateString("en-CA");
+        $scope.vouchers = (resp.data || []).filter((v) =>
+            String(v.dateFrom).substring(0, 10) <= today && (v.number == null || v.number > 0));
+    }).catch(() => {}).finally(() => {
+        $scope.loaded = true;
+    });
+
+    $scope.copy = (code) => {
+        var done = () => { $scope.$applyAsync(() => { $scope.copied = code; }); };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code).then(done, done);
+        } else {
+            var t = document.createElement("textarea");
+            t.value = code;
+            document.body.appendChild(t);
+            t.select();
+            try { document.execCommand("copy"); } catch (e) {}
+            document.body.removeChild(t);
+            done();
+        }
     };
 });

@@ -96,7 +96,7 @@ public class CustomerController {
         int number_hint_keyword = 5;
         model.addAttribute("products", list);
         model.addAttribute("page", "user.home");
-        model.addAttribute("title_main", "Fastshop.com - Nơi những mặt hàng được vận chuyển nhanh chóng mặt");
+        model.addAttribute("title_main", "Tìm kiếm: " + kw + " - Fastshop");
         model.addAttribute("hints", categoryService.getOneProductEachCategories(number_hint_keyword));
         if (auth != null) {
             model.addAttribute("count_notify", notifyService.findAllByAccAndNowAndStatusTrueOrderBy(auth.getAccount()));
@@ -172,35 +172,17 @@ public class CustomerController {
         }
     }
 
-    @RequestMapping("/user/bill")
-    public String bill(Model model, @ModelAttribute("auth") Authority auth) {
-        try {
-            model.addAttribute("now", new Date());
-            model.addAttribute("address", addressService.findByAccountWithChooseIsTrue(auth.getAccount().getUsername()));
-            model.addAttribute("count_notify", notifyService.findAllByAccAndNowAndStatusTrueOrderBy(auth.getAccount()));
-            model.addAttribute("products", productSevice.findAll());
-            model.addAttribute("atm", atmService.findByAccount(auth.getAccount()));
-            return "customer/bill";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
-    }
-
     @RequestMapping("/user/history")
-    public String history(Model model, @ModelAttribute("auth") Authority auth) {
-        try {
-            model.addAttribute("page", "user.history");
-            model.addAttribute("now", new Date());
-            model.addAttribute("count_notify", notifyService.findAllByAccAndNowAndStatusTrueOrderBy(auth.getAccount()));
-            return "index";
-        } catch (Exception e) {
-            return "redirect:/login";
-        }
+    public String history() {
+        return "redirect:/user/myorder";
     }
 
     
     @RequestMapping("/user/myorder")
     public String myorder(Model model, @ModelAttribute("auth") Authority auth) {
+        if (auth == null) {
+            return "redirect:/login";
+        }
         return "redirect:/user/order/"+ auth.getAccount().getUsername() + "/0";
     }
 

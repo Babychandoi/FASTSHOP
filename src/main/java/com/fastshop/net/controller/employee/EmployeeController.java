@@ -2,18 +2,20 @@ package com.fastshop.net.controller.employee;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
+import com.fastshop.net.config.UploadConfig;
 import com.fastshop.net.model.Account;
 import com.fastshop.net.model.Authority;
 import com.fastshop.net.model.History;
 import com.fastshop.net.model.Notify;
 import com.fastshop.net.model.Role;
+import com.fastshop.net.security.Passwords;
 import com.fastshop.net.service.AccountService;
 import com.fastshop.net.service.AuthorityService;
 import com.fastshop.net.service.HistoryService;
@@ -31,7 +33,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 public class EmployeeController {
-    public static String uploadDir = System.getProperty("user.dir") + "/src/main/resources/static/files";
     @Autowired
     _CookieService cookie;
     @Autowired
@@ -50,7 +51,15 @@ public class EmployeeController {
     @RequestMapping("/account/add")
     public String add(Account account, @ModelAttribute("auth") Authority auth) {
         try {
+            // không cho ghi đè tài khoản đã tồn tại
+            if (accountService.existsByUsername(account.getUsername()) || accountService.existsByEmail(account.getEmail())) {
+                return "error/error-duplicate";
+            }
+            if (account.getActive() == null) {
+                account.setActive(true);
+            }
             // save account
+            account.setPassword(Passwords.hash(account.getPassword()));
             accountService.save(account);
 
             // save auth
@@ -72,7 +81,7 @@ public class EmployeeController {
             String username = cookie.getValue("username");
             Account account1 = accountService.findByUsername(username);
             history.setAccount(account1);
-            history.setTitle("Bạn đã thêm thành công nhân viên ID ( "  + account1.getUsername() + " )");
+            history.setTitle("Bạn đã thêm thành công nhân viên ID ( "  + account.getUsername() + " )");
             history.setSchedual(new Date());
             history.setLink(null);
             history.setStatus(true);
@@ -115,13 +124,15 @@ public class EmployeeController {
 
     @RequestMapping("/account/search")
     public String name(Model model, @ModelAttribute("auth") Authority auth, String keyword) {
-        if (keyword.trim().equalsIgnoreCase("") || keyword == null) {
+        if (keyword == null || keyword.trim().isEmpty()) {
             return "redirect:/admin/employee";
         }
         else {
             model.addAttribute("staff", new Account());
             model.addAttribute("title_main", "Admin - Thống kê danh sách nhân viên");
             model.addAttribute("employees", authorityService.findByKeyword(keyword.trim()));
+            model.addAttribute("waitForStaffList", authorityService.getWaitForStaff().stream().map(w -> w.getAccount()).collect(Collectors.toList()));
+            model.addAttribute("histories", historyService.findAll());
             model.addAttribute("page", "admin.employee");
             model.addAttribute("count_notify", notifyService.findAllByAccAndNowAndStatusTrueOrderBy(auth.getAccount()));
             return "index";
@@ -141,8 +152,9 @@ public class EmployeeController {
             notify.setTitle("Đã gửi báo cáo thành công " + FormatDate.parse());
             String imageUUID = "";
             if(!multipartFile.isEmpty()){
-                imageUUID = multipartFile.getOriginalFilename();
-                Path fileNameAndPath = Paths.get(uploadDir, imageUUID);
+                imageUUID = UploadConfig.safeFileName(multipartFile.getOriginalFilename(), UploadConfig.REPORT_EXTENSIONS);
+                Files.createDirectories(UploadConfig.reportFileDir());
+                Path fileNameAndPath = UploadConfig.reportFileDir().resolve(imageUUID);
                 Files.write(fileNameAndPath, multipartFile.getBytes());
             }else {
                 imageUUID = txtFileList;
@@ -152,25 +164,31 @@ public class EmployeeController {
             notifyService.save(notify);
 
 
-            Notify notifyAdmin = new Notify();
-            notifyAdmin.setAccount(accountService.findById("khannit159"));
-            notifyAdmin.setStatus(true);
-            notifyAdmin.setSentDate(new Date());
-            notifyAdmin.setTitle("Nhân viên " + auth.getAccount().getFullname() + " đã gửi báo cáo " + FormatDate.parse());
-            notifyAdmin.setFileName("PDF File");
-            notifyService.save(notifyAdmin);
+            for (Authority admin : authorityService.findAll()) {
+                if (!admin.getRole().getId().equals("ADMIN")) {
+                    continue;
+                }
+                Notify notifyAdmin = new Notify();
+                notifyAdmin.setAccount(admin.getAccount());
+                notifyAdmin.setStatus(true);
+                notifyAdmin.setSentDate(new Date());
+                notifyAdmin.setTitle("Nhân viên " + auth.getAccount().getFullname() + " đã gửi báo cáo " + FormatDate.parse());
+                notifyAdmin.setFileName(imageUUID);
+                notifyService.save(notifyAdmin);
+            }
 
             History history = new History();
             history.setAccount(auth.getAccount());
             history.setTitle("Nhân viên " + auth.getAccount().getFullname() + " đã gửi báo cáo " + FormatDate.parse());
             history.setSchedual(new Date());
-            history.setLink("http://localhost:8080/files/" + imageUUID);
+            history.setLink("/files/" + imageUUID);
             history.setStatus(true);
             historyService.save(history);
 
-            return "redirect:/staff/report";
+            return "redirect:/staff/report?sent=ok";
         } catch (Exception e) {
-            return "redirect:/login.fastshop.com";
+            e.printStackTrace();
+            return "redirect:/staff/report?sent=error";
         }
     }
 

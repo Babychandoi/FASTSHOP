@@ -4,10 +4,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fastshop.net.model.Comment;
 import com.fastshop.net.service.AccountService;
 import com.fastshop.net.service.CommentService;
+import com.fastshop.net.service.ProductService;
+import com.fastshop.net.service._CookieService;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +27,10 @@ public class RestCommentController {
     CommentService commentService;
     @Autowired
     AccountService accountService;
+    @Autowired
+    ProductService productService;
+    @Autowired
+    _CookieService cookie;
 
     @GetMapping("/rest/comments/{id}")
     public Comment getById(@PathVariable("id") Integer id) {
@@ -38,8 +46,20 @@ public class RestCommentController {
         }
     }
     @PostMapping("/rest/comments")
-    public void post(@RequestBody Comment comment) {
+    public ResponseEntity<String> post(@RequestBody Comment comment) {
+        if (comment.getRate() == null || comment.getRate() < 1 || comment.getRate() > 5) {
+            return ResponseEntity.badRequest().body("(*) Vui lòng chọn số sao từ 1 đến 5.");
+        }
+        if (comment.getFeedback() == null || comment.getFeedback().isBlank() || comment.getProduct() == null) {
+            return ResponseEntity.badRequest().body("(*) Vui lòng nhập nội dung đánh giá.");
+        }
+        comment.setId(null);
+        comment.setAccount(accountService.findById(cookie.getValue("username")));
+        comment.setProduct(productService.findById(comment.getProduct().getId()));
+        comment.setFeedback(comment.getFeedback().trim());
+        comment.setDatePost(new Date());
         commentService.save(comment);
+        return ResponseEntity.ok("OK");
     }
 
     @PutMapping("/rest/comments/{id}")

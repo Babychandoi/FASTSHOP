@@ -1,5 +1,38 @@
-.bill-payment > .bg-white span input[type="radio"]{
-    width: 20px;
-    height: 20px;
-    margin-right: 10px;
+.checkout-page {
+    padding: 1.25rem 0 2rem;
+}
+
+.cart-table .cart-item-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cart-table .qty-group {
+    width: 112px;
+}
+
+.cart-table .qty-group .btn {
+    width: 32px;
+}
+
+.order-summary {
+    position: sticky;
+    top: 1rem;
+}
+
+.payment-icons .icon {
+    width: auto;
+    height: auto;
+    display: inline-flex;
+}
+
+.payment-icons .icon svg {
+    width: 34px;
+    height: 34px;
+}
+
+.border-dashed {
+    border-style: dashed !important;
 }

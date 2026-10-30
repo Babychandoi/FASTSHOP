@@ -1,20 +1,129 @@
-.list-profile{
-    list-style-type: none !important;
-    text-align: start;
-    margin-top: -20px;
+/* ---------- Bố cục các trang tài khoản khách hàng ---------- */
+.account-layout {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+    padding: 1.25rem 0 2rem;
 }
 
-.list-profile li {
-    font-size: 13px;
-    margin-left: -14px;
-    padding: 7px;
-    margin-bottom: 2px;
+@media (max-width: 991.98px) {
+    .account-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
-.list-profile li:hover {
-    background-color: #F2F2F2;
+.account-sidebar {
+    position: sticky;
+    top: 1rem;
 }
 
-.list-profile li > a {
-    text-decoration: none;
+.account-sidebar .list-group-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .7rem 1rem;
+    border-left: 3px solid transparent;
+    color: var(--tblr-body-color, #1d273b);
+}
+
+.account-sidebar .list-group-item svg {
+    flex-shrink: 0;
+    opacity: .7;
+}
+
+.account-sidebar .list-group-item.active {
+    background-color: rgba(32, 107, 196, .06);
+    border-left-color: var(--tblr-primary, #206bc4);
+    color: var(--tblr-primary, #206bc4);
+    font-weight: 600;
+    z-index: 0;
+}
+
+.account-sidebar .list-group-item.active svg {
+    opacity: 1;
+}
+
+.account-sidebar .list-group-item.text-danger {
+    color: #d63939 !important;
+}
+
+.account-content > .card + .card {
+    margin-top: 1rem;
+}
+
+.account-content .card-header .card-title {
+    font-size: 1.05rem;
+}
+
+.account-content .empty {
+    padding: 3rem 1rem;
+}
+
+/* ---------- Đơn hàng ---------- */
+.order-tabs .nav-link {
+    white-space: nowrap;
+}
+
+.order-table td,
+.order-table th {
+    vertical-align: middle;
+}
+
+.order-table .money {
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* ---------- Voucher (trang Mã giảm giá & Khuyến mãi) ---------- */
+.voucher-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 1rem;
+}
+
+.voucher {
+    display: flex;
+    border: 1px solid #e6e7e9;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.voucher-value {
+    flex: 0 0 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem .5rem;
+    color: #fff;
+    background: linear-gradient(135deg, #f76707, #d63939);
+    border-right: 2px dashed rgba(255, 255, 255, .7);
+    text-align: center;
+}
+
+.voucher-value.cash {
+    background: linear-gradient(135deg, #2fb344, #0ca678);
+}
+
+.voucher-value strong {
+    font-size: 1.6rem;
+    line-height: 1.1;
+}
+
+.voucher-body {
+    flex: 1;
+    padding: .85rem 1rem;
+    min-width: 0;
+}
+
+.voucher-code {
+    font-family: var(--tblr-font-monospace, monospace);
+    font-weight: 600;
+    letter-spacing: .5px;
+    background: #f4f6fa;
+    border: 1px dashed #c8d3e1;
+    border-radius: 4px;
+    padding: .15rem .5rem;
 }

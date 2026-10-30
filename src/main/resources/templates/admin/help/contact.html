@@ -1,38 +1,49 @@
 <div th:fragment="subfragment" class="page-wrapper">
-  <div class="page-wrapper">
-    <div class="container-xl">
-      <!-- Page title -->
-      <div class="page-header d-print-none">
-        <div class="row g-2 align-items-center">
-          <div class="col">
-            <h2 class="page-title">
-              Thông tin liên hệ
-            </h2>
+  <div class="container-xl py-4">
+    <div class="mb-3">
+      <h2 class="page-title mb-1">Thông tin liên hệ</h2>
+      <div class="text-muted">Thông tin trụ sở và các kênh hỗ trợ nội bộ của Fastshop.</div>
+    </div>
+
+    <div class="row row-cards">
+      <div class="col-lg-5">
+        <div class="card h-100">
+          <div class="card-header">
+            <h3 class="card-title">Trụ sở chính</h3>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <img th:src="@{/dist/img/logo/logo_hien.png}" height="36" alt="Fastshop">
+            </div>
+            <dl class="row mb-0">
+              <dt class="col-4 text-muted fw-normal">Địa chỉ</dt>
+              <dd class="col-8">54 Nguyễn Thị Thập, Q. Thanh Khê, TP. Đà Nẵng</dd>
+              <dt class="col-4 text-muted fw-normal">Hotline</dt>
+              <dd class="col-8"><a href="tel:+84386837394">(+84) 386 837 394</a></dd>
+              <dt class="col-4 text-muted fw-normal">Website</dt>
+              <dd class="col-8"><a href="/">fastshop.com</a></dd>
+              <dt class="col-4 text-muted fw-normal">Giờ làm việc</dt>
+              <dd class="col-8">8h00 – 21h00, tất cả các ngày trong tuần</dd>
+            </dl>
+          </div>
+          <div class="card-body border-top">
+            <h4 class="mb-2">Khi cần hỗ trợ</h4>
+            <ul class="mb-0 ps-3 text-muted">
+              <li>Lỗi đơn hàng, tồn kho, mã giảm giá: báo cho quản trị viên qua mục “Gửi báo cáo”.</li>
+              <li>Quên mật khẩu tài khoản nhân viên: dùng “Quên mật khẩu?” ở trang đăng nhập công ty.</li>
+              <li>Tài khoản bị khóa: liên hệ quản trị viên để được kích hoạt lại.</li>
+            </ul>
           </div>
         </div>
       </div>
-    </div>
-    <div class="page-body">
-      <div class="container-xl">
-        <div class="row row-cards">
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-body">
-                <div class="card-title">Bản đồ đường đi</div>
-                <div class="ratio ratio-16x9">
-                  <iframe width="100%" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d18702.384972145526!2d108.16122151252111!3d16.06530318524082!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1svi!2s!4v1662524093021!5m2!1svi!2s" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                </div>
-              </div>
-            </div>
+      <div class="col-lg-7">
+        <div class="card h-100">
+          <div class="card-header">
+            <h3 class="card-title">Bản đồ đường đi</h3>
           </div>
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-body">
-                <div class="card-title">Địa chỉ thông tin</div>
-                <div class="ratio ratio-16x9">
-                  <img width="100%" th:src="@{/dist/img/docs/card_visit.png}" alt="">
-                </div>
-              </div>
+          <div class="card-body">
+            <div class="ratio ratio-4x3">
+              <iframe title="Bản đồ trụ sở Fastshop" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d18702.384972145526!2d108.16122151252111!3d16.06530318524082!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1svi!2s!4v1662524093021!5m2!1svi!2s" style="border: 0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
           </div>
         </div>

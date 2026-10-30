@@ -1,144 +1,156 @@
 <div th:fragment="subfragment" class="page-wrapper">
-	<div class="page-wrapper mt-4 p-4 bg-white mb-4" id="page-category">
-		<h1 class="mt-2 text-primary">[[${title}]]</h1>
-		<div class="text-center">
-			
-		</div>
+  <div class="container py-4" id="page-category">
 
-    <!-- ko có sản phẩm thì show cái này -->
-    <div th:if="${categories.size() == 0}" class="text-center">
-      <img th:src="@{/empty-cart.png}" width="54%" alt="">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+      <div>
+        <h2 class="page-title mb-1">Phân loại hàng</h2>
+        <div class="text-muted">Bật / tắt một loại hàng sẽ cập nhật trạng thái bán của toàn bộ sản phẩm thuộc loại đó.</div>
+      </div>
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-category">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+        Thêm loại hàng
+      </button>
     </div>
 
-    <!-- còn sản phẩm thì show -->
-    <ul th:if="${categories.size() != 0}" id="accordion" class="accordion row">
-      <a href="#" class="btn btn-outline-primary" style="transition: 0.3s;" data-bs-toggle="modal" data-bs-target="#modal-category" role="button">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-analytics" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-          <rect x="3" y="4" width="18" height="12" rx="1"></rect>
-          <line x1="7" y1="20" x2="17" y2="20"></line>
-          <line x1="9" y1="16" x2="9" y2="20"></line>
-          <line x1="15" y1="16" x2="15" y2="20"></line>
-          <path d="M8 12l3 -3l2 2l3 -3"></path>
-        </svg>
-        Mở form
-      </a>
-      <span class="mt-2 mb-2 text-warning ">[[${categories.size() + ' loại hàng'}]]</span>
-      <li th:each="item : ${categories}">
-        <div class="link mb-2 fs-4 d-flex justify-content-between">
-          <span>
-            <!-- icon hình cái giỏ -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-basket me-2" viewBox="0 0 16 16">
-              <path d="M5.757 1.071a.5.5 0 0 1 .172.686L3.383 6h9.234L10.07 1.757a.5.5 0 1 1 .858-.514L13.783 6H15a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1v4.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 13.5V9a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h1.217L5.07 1.243a.5.5 0 0 1 .686-.172zM2 9v4.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V9H2zM1 7v1h14V7H1zm3 3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 4 10zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 6 10zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 8 10zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 1 .5-.5zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 1 .5-.5z"/>
-            </svg> [[${item.name}]]
-          </span>
-          
-          <span>
-            <!-- icon mũi tên down -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-down" width="24" height="24"
-              viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
-              stroke-linejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-
-
-        <ul class="submenu mt-1 bg-light">
-          <li class="pt-1 me-3 d-flex justify-content-end align-items-center">
-            <label class="text-danger" style="font-weight: 600;">OFF </label>
-            <label class="switch me-2 ms-2">
-              <input type="checkbox" th:checked="${item.status}" th:id="${item.id}" name="cbox" onchange="onCbChangeCategory(this.id)">
-              <span class="slider round"></span>
-              <!-- button danger will so if status is true -->
-              <a href="#" th:id="${'CT-' + item.id}" class="btn" data-bs-toggle="modal" th:data-bs-target="${'#modal-notify-' + item.id}" hidden> Mở modal </a>
-            </label>
-            <label class="text-success" style="font-weight: 600;"> ON</label>
+    <div class="card">
+      <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+          <li class="nav-item">
+            <a class="nav-link" href="/staff/category/all" th:classappend="${focus == 'all'} ? 'active fw-bold'">Tất cả</a>
           </li>
-          <li th:each="pro : ${item.products}">
-            <span class="a-product">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-box-seam-fill me-2" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M15.528 2.973a.75.75 0 0 1 .472.696v8.662a.75.75 0 0 1-.472.696l-7.25 2.9a.75.75 0 0 1-.557 0l-7.25-2.9A.75.75 0 0 1 0 12.331V3.669a.75.75 0 0 1 .471-.696L7.443.184l.01-.003.268-.108a.75.75 0 0 1 .558 0l.269.108.01.003 6.97 2.789ZM10.404 2 4.25 4.461 1.846 3.5 1 3.839v.4l6.5 2.6v7.922l.5.2.5-.2V6.84l6.5-2.6v-.4l-.846-.339L8 5.961 5.596 5l6.154-2.461L10.404 2Z"/>
-              </svg> [[${pro.name}]]</span>
+          <li class="nav-item">
+            <a class="nav-link" href="/staff/category/stock" th:classappend="${focus == 'stock'} ? 'active fw-bold'">
+              <span class="badge bg-green me-2 p-1"></span>Đang bán
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/staff/category/out" th:classappend="${focus == 'out'} ? 'active fw-bold'">
+              <span class="badge bg-red me-2 p-1"></span>Tạm dừng
+            </a>
           </li>
         </ul>
+      </div>
+      <div class="card-body border-bottom py-3 text-muted">
+        <strong class="text-body">[[${categories.size()}]]</strong> loại hàng [[${focus == 'stock' ? 'đang bán' : (focus == 'out' ? 'đang tạm dừng' : '')}]]
+      </div>
 
+      <!-- không có loại hàng -->
+      <div th:if="${categories.size() == 0}" class="card-body text-center py-5 text-muted">
+        Không có loại hàng nào trong mục này.
+      </div>
 
-
-
-        <!-- modal -->
-        <div class="modal modal-blur fade" th:id="${'modal-notify-' + {item.id}}" tabindex="-1" role="dialog" aria-hidden="true">
-          <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-            <div class="modal-content">
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              <div class="modal-status bg-danger"></div>
-              <div class="modal-body text-center py-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
-                <h3>Bạn có thật sự muốn thay đổi ?</h3>
-                <div class="text-muted">Tất cả sản phẩm hiện tại sẽ được cập nhật trạng thái và hiện lên trang chính.</div>
+      <div class="list-group list-group-flush" th:if="${categories.size() != 0}">
+        <div class="list-group-item" th:each="item : ${categories}">
+          <div class="row align-items-center g-3">
+            <div class="col">
+              <a class="text-reset fw-bold d-inline-flex align-items-center" data-bs-toggle="collapse" th:href="${'#cat-products-' + item.id}" role="button" aria-expanded="false">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2 text-muted cat-chevron" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18" /></svg>
+                [[${item.name}]]
+              </a>
+              <div class="text-muted small ms-4">
+                Mã: <strong>[[${item.id}]]</strong> · Đơn vị: [[${item.unit}]] · [[${item.products == null ? 0 : item.products.size()}]] sản phẩm
               </div>
-              <div class="modal-footer">
-                <div class="w-100">
-                  <div class="row">
-                    <div class="col">
-                      <a href="#" class="btn w-100" data-bs-dismiss="modal">
-                        Hủy bỏ
-                      </a>
-                    </div>
-                    <div class="col">
-                      <a th:id="${'CT-' + item.id}" th:if="${item.status == true}" th:href="@{|/category/update/avaiable/${item.id}?avaiable=false&&focus=${focus}|}" class="btn btn-danger w-100">Dừng bán</a>
-                      <a th:id="${'CT-' + item.id}" th:if="${item.status == false}" th:href="@{|/category/update/avaiable/${item.id}?avaiable=true&&focus=${focus}|}" class="btn btn-warning w-100">Bán lại</a>
-                    </div>
-                  </div>
-                </div>
+            </div>
+            <div class="col-auto">
+              <span class="badge" th:classappend="${item.status} ? 'bg-green-lt' : 'bg-red-lt'">[[${item.status} ? 'Đang bán' : 'Tạm dừng']]</span>
+            </div>
+            <div class="col-auto">
+              <label class="form-check form-switch m-0" th:title="${item.status} ? 'Dừng bán loại hàng này' : 'Bán lại loại hàng này'">
+                <input class="form-check-input cat-switch" type="checkbox" th:checked="${item.status}"
+                  th:attr="data-id=${item.id},data-name=${item.name},data-status=${item.status}">
+              </label>
+            </div>
+          </div>
+          <div class="collapse" th:id="${'cat-products-' + item.id}">
+            <div class="ms-4 mt-2" th:if="${item.products != null and item.products.size() > 0}">
+              <span class="badge bg-secondary-lt me-1 mb-1 fw-normal" th:each="pro : ${item.products}">[[${pro.name}]]</span>
+            </div>
+            <div class="ms-4 mt-2 text-muted small" th:if="${item.products == null or item.products.size() == 0}">Chưa có sản phẩm.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- confirm status change (shared) -->
+    <div class="modal modal-blur fade" id="modal-category-status" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+          <div class="modal-status" id="cat-status-bar"></div>
+          <div class="modal-body text-center py-4">
+            <h3 id="cat-status-title">Thay đổi trạng thái?</h3>
+            <div class="text-muted" id="cat-status-text"></div>
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><button type="button" class="btn w-100" data-bs-dismiss="modal">Hủy bỏ</button></div>
+                <div class="col"><a href="#" id="cat-status-confirm" class="btn w-100">Xác nhận</a></div>
               </div>
             </div>
           </div>
         </div>
-
-        
-      </li>
-    </ul>
-
+      </div>
+    </div>
 
     <!-- Modal category -->
-		<div class="modal modal-blur fade" id="modal-category" tabindex="-1" role="dialog" aria-hidden="true">
-			<form method="post" action="/category/add" th:object="${category}" class="modal-dialog modal-lg" role="document">
-			  <div class="modal-content">
+    <div class="modal modal-blur fade" id="modal-category" tabindex="-1" role="dialog" aria-hidden="true">
+      <form method="post" action="/category/add" th:object="${category}" class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Nhập loại hàng mới</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title">Thêm loại hàng mới</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label">Mã loại hàng:</label>
-              <input type="text" th:field="*{id}" class="form-control" pattern="^[A-Z]{1,5}$" required name="example-text-input" placeholder="Nhập mã loại hàng ở đây">
+              <label class="form-label required">Mã loại hàng</label>
+              <input type="text" th:field="*{id}" class="form-control" pattern="^[A-Z]{1,5}$" maxlength="5" required placeholder="VD: DT" title="1–5 chữ cái in hoa, không dấu">
+              <small class="form-hint">1–5 chữ cái in hoa, không dấu (VD: DT, LAP).</small>
             </div>
             <div class="mb-3">
-              <label class="form-label">Tên loại hàng:</label>
-              <input type="text" th:field="*{name}" class="form-control" required name="example-text-input" placeholder="Nhập tên mã loại hàng ở đây">
+              <label class="form-label required">Tên loại hàng</label>
+              <input type="text" th:field="*{name}" class="form-control" required placeholder="VD: Điện thoại">
             </div>
-            <div class="mb-3">
-              <label class="form-label">Đơn vị:</label>
-              <input type="text" th:field="*{unit}" class="form-control" required name="example-text-input" placeholder="Nhập đơn vị">
+            <div class="mb-1">
+              <label class="form-label required">Đơn vị tính</label>
+              <input type="text" th:field="*{unit}" class="form-control" required placeholder="VD: cái, hộp, thùng">
             </div>
           </div>
           <div class="modal-footer">
-            <a href="#" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-              Hủy bỏ
-            </a>
-            <button type="submit" class="btn btn-success ms-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-              Thêm mới
-            </butt>
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Hủy bỏ</button>
+            <button type="submit" class="btn btn-primary">Thêm mới</button>
           </div>
         </div>
-		  </form> 
+      </form>
     </div>
+  </div>
 
-	</div>
-
-  <link th:href="@{/dist/css/category.css}" rel="stylesheet"/>
-  <script th:src="@{/dist/js/category.js}"></script>
+  <style>
+    #page-category [aria-expanded="true"] .cat-chevron { transform: rotate(90deg); }
+    #page-category .cat-chevron { transition: transform .2s; }
+    #page-category .form-switch .form-check-input { width: 2.5rem; height: 1.25rem; cursor: pointer; }
+  </style>
+  <script th:inline="javascript">
+    (function () {
+      var focus = /*[[${focus}]]*/ 'all';
+      var modalEl = document.getElementById('modal-category-status');
+      document.querySelectorAll('#page-category .cat-switch').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+          var on = cb.getAttribute('data-status') === 'true';
+          cb.checked = on; // chỉ đổi sau khi xác nhận
+          var id = cb.getAttribute('data-id'), name = cb.getAttribute('data-name');
+          document.getElementById('cat-status-bar').className = 'modal-status ' + (on ? 'bg-danger' : 'bg-success');
+          document.getElementById('cat-status-title').textContent = (on ? 'Dừng bán “' : 'Bán lại “') + name + '”?';
+          document.getElementById('cat-status-text').textContent = on
+            ? 'Toàn bộ sản phẩm thuộc loại này sẽ bị ẩn khỏi cửa hàng.'
+            : 'Toàn bộ sản phẩm thuộc loại này sẽ hiển thị lại trên cửa hàng.';
+          var btn = document.getElementById('cat-status-confirm');
+          btn.className = 'btn w-100 ' + (on ? 'btn-danger' : 'btn-success');
+          btn.textContent = on ? 'Dừng bán' : 'Bán lại';
+          btn.href = '/category/update/avaiable/' + encodeURIComponent(id) + '?avaiable=' + (!on) + '&focus=' + focus;
+          bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        });
+      });
+    })();
+  </script>
 </div>

@@ -10,15 +10,21 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.fastshop.net.service.CategoryService;
+import com.fastshop.net.service.CommentService;
 
 @Component
 public class GlobalInterceptor implements HandlerInterceptor{
     @Autowired
     CategoryService categoryService;
+    @Autowired
+    CommentService commentService;
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
             @Nullable ModelAndView modelAndView) throws Exception {
         request.setAttribute("cates", categoryService.findAll());
+        if (modelAndView != null && "index".equals(modelAndView.getViewName())) {
+            request.setAttribute("ratings", commentService.getRatingSummary());
+        }
     }
 }

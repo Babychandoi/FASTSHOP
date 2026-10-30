@@ -1,27 +1,27 @@
 <div th:fragment="subfragment" class="page-wrapper">
   <div class="container py-4" ng-controller="product-ctrl">
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">Sản phẩm</h3>
+    <div class="alert alert-danger" th:if="${param.error != null and param.error[0] == 'image'}">Vui lòng chọn ảnh cho sản phẩm mới.</div>
+    <div class="alert alert-danger" th:if="${param.error != null and param.error[0] == 'upload'}">Không lưu được sản phẩm. Ảnh phải có định dạng JPG, PNG, WEBP hoặc GIF.</div>
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+      <div>
+        <h2 class="page-title mb-1">Sản phẩm</h2>
+        <div class="text-muted">Quản lý giá, tồn kho, hình ảnh và thông tin chi tiết của sản phẩm.</div>
       </div>
+    </div>
+    <div class="card">
       <div class="card-body border-bottom py-3">
-        <div class="d-flex">
-          <div class="text-muted">
-            Hiển thị
-            <div class="mx-2 d-inline-block">
-              <input type="text" class="form-control form-control-sm text-center" ng-model="items.length" size="3"
-                aria-label="Invoices count" disabled>
-            </div>
-            sản phẩm
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <div class="text-muted" ng-cloak>
+            <strong class="text-body">{{ (items | filter : getItems).length }}</strong> sản phẩm
           </div>
 
-          <div class="ms-auto text-muted d-flex justify-content-center">
+          <div class="ms-auto text-muted d-flex flex-wrap gap-2">
             <!-- this is filter products -->
-            <input type="text" ng-model="getItems" class="form-control me-3"
-              placeholder="Nhập từ khóa tìm kiếm sản phẩm ..." style="width: 350px;">
+            <input type="search" ng-model="getItems" class="form-control"
+              placeholder="Tìm theo tên, loại hàng ..." style="width: 320px; max-width: 100%;">
 
             <!-- this is button to open form -->
-            <button class="btn btn-success d-none d-sm-inline-block" data-bs-toggle="modal"
+            <button class="btn btn-primary" data-bs-toggle="modal"
               data-bs-target="#modal-product-add" style="text-decoration: none;">
               <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
                 stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -39,7 +39,7 @@
           <thead>
             <tr>
               <th class="w-1"></th>
-              <th class="w-1">Id.
+              <th class="w-1">Mã
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm text-dark icon-thick" width="24" height="24"
                   viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
                   stroke-linejoin="round">
@@ -47,13 +47,13 @@
                   <polyline points="6 15 12 9 18 15" />
                 </svg>
               </th>
-              <th class="w-3">Tên sản phẩm.</th>
-              <th>Hình ảnh.</th>
-              <th>Số lượng.</th>
-              <th>Giá cả.</th>
-              <th>Ngày tạo ra.</th>
-              <th>Trạng thái.</th>
-              <th>Loại hàng.</th>
+              <th class="w-3">Tên sản phẩm</th>
+              <th>Ảnh</th>
+              <th>Tồn kho</th>
+              <th>Giá bán</th>
+              <th>Ngày tạo</th>
+              <th>Trạng thái</th>
+              <th>Loại hàng</th>
               <th></th>
             </tr>
           </thead>
@@ -62,27 +62,28 @@
             <!-- this is tr -->
             <tr ng-repeat="item in items | filter : getItems | orderBy : 'item.id'">
               <td></td> 
-              <td><span class="text-muted">#.{{ item.id }}</span></td>
+              <td><span class="text-muted">#{{ item.id }}</span></td>
               <td class="text-reset text-truncate">{{ item.name }}</td>
               <td class="text-truncate">
-                <img class="bg-white" ng-src="/dist/img/products/{{item.image}}" width="37px" height="37px" onerror="this.src='/dist/img/products/default.png'">
-                <a href="/user/detail/{{item.id}}">{{ item.image }}</a>
+                <a href="/user/detail/{{item.id}}" target="_blank" title="Xem trên cửa hàng">
+                  <img class="bg-white rounded border" ng-src="/dist/img/products/{{item.image}}" width="40" height="40" style="object-fit: contain;">
+                </a>
               </td>
               <th>{{ item.number }}</th>
-              <td>
-                <strong style="font-weight: bolder;">$</strong> {{ item.price }}
+              <td class="text-nowrap">
+                <strong>$</strong>{{ item.price | number:2 }}
               </td>
-              <td>
-                {{ item.createDate | date:'dd-MM-yyyy'}}
+              <td class="text-nowrap">
+                {{ item.createDate | date:'dd/MM/yyyy'}}
               </td>
-              <td>
+              <td class="text-nowrap">
                 <span class="badge bg-{{item.number != 0 && item.category.status != false ? 'success' : 'danger'}} me-1"></span>
-                {{ item.number != 0 && item.category.status != false ? 'Còn bán' : 'Hết bán' }}
+                {{ item.number != 0 && item.category.status != false ? 'Còn bán' : 'Hết hàng' }}
               </td>
               <td> {{ item.category.name }} </td>
-              <td class="text-end">
+              <td class="text-end text-nowrap">
                 <!-- this is link to detail page -->
-                <a ng-href="/staff/detail/{{item.id}}" class="btn btn-default me-2" style="text-decoration: none;">
+                <a ng-href="/staff/detail/{{item.id}}" class="btn btn-sm btn-outline-secondary me-1" style="text-decoration: none;">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle me-1" viewBox="0 0 16 16">
                     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                     <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
@@ -90,12 +91,12 @@
                   Thông tin
                 </a>
                 <!-- this is edit -->
-                <a ng-click="edit(item.id)" class="btn d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-product" style="text-decoration: none; border: 1px dashed gray">
+                <a ng-click="edit(item.id)" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal-product" style="text-decoration: none;">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-vector-pen me-2" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M10.646.646a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1 0 .708l-1.902 1.902-.829 3.313a1.5 1.5 0 0 1-1.024 1.073L1.254 14.746 4.358 4.4A1.5 1.5 0 0 1 5.43 3.377l3.313-.828L10.646.646zm-1.8 2.908-3.173.793a.5.5 0 0 0-.358.342l-2.57 8.565 8.567-2.57a.5.5 0 0 0 .34-.357l.794-3.174-3.6-3.6z"/>
                     <path fill-rule="evenodd" d="M2.832 13.228 8 9a1 1 0 1 0-1-1l-4.228 5.168-.026.086.086-.026z"/>
                   </svg>
-                  Xem
+                  Sửa
                 </a>
               </td>
             </tr>
@@ -115,7 +116,7 @@
       <div class="modal-dialog modal-lg" role="document">
         <form method="post" class="modal-content" action="/staff/products/add" enctype="multipart/form-data" th:object="${productDTO}">
           <div class="modal-header">
-            <h5 class="modal-title">Chi tiết sản phẩm</h5>
+            <h5 class="modal-title">Thêm sản phẩm mới</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -123,10 +124,10 @@
               <label class="form-label">Tên sản phẩm</label>
 
               <!-- this is model name of form product -->
-              <input type="text" class="form-control text-primary" min="10" name="example-text-input"
+              <input type="text" class="form-control"
                 placeholder="Nhập tên sản phẩm ..." autocomplete="off" th:field="*{name}" required>
             </div>
-            <label class="form-label">Nhập thêm số lượng</label>
+            <label class="form-label required">Số lượng nhập kho</label>
             <div class="form-selectgroup-boxes row mb-3">
               <div>
                 <input type="number" min="1" step="1" class="form-control ps-2" placeholder="Nhập số số lượng ..."
@@ -164,8 +165,8 @@
                   <label class="form-label">Chọn ảnh</label>
 
                   <!-- this is file -->
-                  <input type="file" class="form-control" id="productImage" name="productImage" accept="image/jpeg, image/png, image/jpg">
-                  <img src="#" id="imgPreview" height="100px" width="100px" th:src="@{${'/dist/img/products/' + productDTO.imageName}}" style="margin-top: 20px" alt="Hình ảnh">
+                  <input type="file" class="form-control" id="productImage" name="productImage" accept="image/jpeg, image/png, image/jpg" required>
+                  <img id="imgPreview" height="100" width="100" th:src="${productDTO.imageName != null ? '/dist/img/products/' + productDTO.imageName : '/empty.png'}" class="mt-2 rounded border bg-white" style="object-fit: contain;" alt="Ảnh xem trước">
                   <input type="hidden" name="imgName" th:value="${productDTO.imageName}">
                 </div>
               </div>
@@ -180,21 +181,9 @@
             </div>
           </div>
 
-          <!-- this is for edit to update and delete -->
           <div class="modal-footer">
-            <button type="submit" class="btn btn-success">
-              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-ballpen" width="24"
-                height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                <path d="M14 6l7 7l-4 4"></path>
-                <path
-                  d="M5.828 18.172a2.828 2.828 0 0 0 4 0l10.586 -10.586a2 2 0 0 0 0 -2.829l-1.171 -1.171a2 2 0 0 0 -2.829 0l-10.586 10.586a2.828 2.828 0 0 0 0 4z">
-                </path>
-                <path d="M4 20l1.768 -1.768"></path>
-              </svg>
-              Lưu trữ
-            </button>
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Hủy bỏ</button>
+            <button type="submit" class="btn btn-primary">Thêm sản phẩm</button>
           </div>
         </form>
       </div>
@@ -207,7 +196,7 @@
       <div class="modal-dialog modal-lg" role="document">
         <form method="post" class="modal-content" action="/staff/products/update" enctype="multipart/form-data" id="form-update-product">
           <div class="modal-header">
-            <h5 class="modal-title">Chi tiết sản phẩm</h5>
+            <h5 class="modal-title">Sửa sản phẩm <span class="text-muted" ng-if="form.id">#{{form.id}}</span></h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -215,9 +204,9 @@
               <label class="form-label">Tên sản phẩm</label>
 
               <!-- this is model name of form product -->
-              <input type="text" ng-model="form.name" class="form-control text-primary" name="example-text-input" placeholder="Nhập tên sản phẩm ...">
+              <input type="text" ng-model="form.name" class="form-control" placeholder="Nhập tên sản phẩm ..." required>
             </div>
-            <label class="form-label">Nhập số lượng</label>
+            <label class="form-label required">Tồn kho</label>
             <div class="form-selectgroup-boxes row mb-3">
               <div>
                 <input type="number" ng-model="form.number" min="1" step="1"  class="form-control ps-2" autocomplete="off" required>
@@ -254,7 +243,7 @@
 
                   <!-- this is file -->
                   <input type="file" class="form-control" name="productImage" id="form-image" accept="image/jpeg, image/png, image/jpg">
-                  <img ng-if="form.image" th:src="@{${'/dist/img/products/'}}" ng-src="/dist/img/products/{{form.image}}" height="100px" width="100px" style="margin-top: 10px;" alt="Preview" id="preview-image">
+                  <img ng-if="form.image" ng-src="/dist/img/products/{{form.image}}" height="100" width="100" class="mt-2 rounded border bg-white" style="object-fit: contain;" alt="Ảnh sản phẩm" id="preview-image">
                 </div>
               </div>
               <div class="col-lg-6">
@@ -275,26 +264,10 @@
             <input type="hidden" name="imgName" id="hidden-imgName">
           </div>
 
-          <!-- this is for edit to update and delete -->
           <div class="modal-footer">
-            <button type="submit" class="btn btn-primary" id="btn-update-product">
-              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-ballpen" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                <path d="M14 6l7 7l-4 4"></path>
-                <path d="M5.828 18.172a2.828 2.828 0 0 0 4 0l10.586 -10.586a2 2 0 0 0 0 -2.829l-1.171 -1.171a2 2 0 0 0 -2.829 0l-10.586 10.586a2.828 2.828 0 0 0 0 4z"></path>
-                <path d="M4 20l1.768 -1.768"></path>
-              </svg>
-              Cập nhật
-            </button>
-            <button type="button" ng-click="delete(form.id)" class="btn btn-danger">
-              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                <rect x="3" y="4" width="18" height="4" rx="2"></rect>
-                <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10"></path>
-                <line x1="10" y1="12" x2="14" y2="12"></line>
-              </svg>
-              Ngừng bán
-            </button>
+            <button type="button" ng-click="delete(form.id)" class="btn btn-outline-danger me-auto" title="Ẩn sản phẩm khỏi cửa hàng và đưa tồn kho về 0">Ngừng bán</button>
+            <button type="button" class="btn" data-bs-dismiss="modal">Hủy bỏ</button>
+            <button type="submit" class="btn btn-primary" id="btn-update-product">Lưu thay đổi</button>
           </div>
         </form>
       </div>

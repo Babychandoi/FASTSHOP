@@ -1,17 +1,21 @@
-# Chọn base image có JDK
-FROM eclipse-temurin:17-jdk-alpine
+# ---------- Build stage ----------
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /build
 
-# Tạo thư mục app
+# Tải dependency trước để tận dụng cache layer
+COPY pom.xml .
+RUN --mount=type=cache,target=/root/.m2 mvn -q -B dependency:go-offline
+
+COPY src ./src
+RUN --mount=type=cache,target=/root/.m2 mvn -q -B clean package -DskipTests
+
+# ---------- Runtime stage ----------
+FROM eclipse-temurin:17-jre
 WORKDIR /app
+ENV TZ=Asia/Ho_Chi_Minh \
+    APP_UPLOAD_DIR=/app/uploads
+RUN mkdir -p /app/uploads/products /app/uploads/files
+COPY --from=build /build/target/net-0.0.1-SNAPSHOT.jar app.jar
 
-# Copy toàn bộ source code
-COPY . .
-
-# Cấp quyền thực thi cho mvnw
-RUN chmod +x ./mvnw
-
-# Build project bằng Maven
-RUN ./mvnw clean package -DskipTests
-
-# Chạy ứng dụng Spring Boot
-CMD ["java", "-jar", "target/net-0.0.1-SNAPSHOT.jar"]
+EXPOSE 8000
+ENTRYPOINT ["java", "-Xms256m", "-Xmx768m", "-jar", "app.jar"]

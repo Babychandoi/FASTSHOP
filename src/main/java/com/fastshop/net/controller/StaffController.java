@@ -1,6 +1,5 @@
 package com.fastshop.net.controller;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +35,7 @@ import com.fastshop.net.service.CategoryDetailService;
 import com.fastshop.net.service.CategoryService;
 import com.fastshop.net.service.DiscountService;
 import com.fastshop.net.service.NotifyService;
+import com.fastshop.net.service.OrderDetailService;
 import com.fastshop.net.service.OrderService;
 import com.fastshop.net.service.ProductDetailService;
 
@@ -61,6 +61,8 @@ public class StaffController {
     ProductDetailService productDetailService;
     @Autowired
     OrderService orderService;
+    @Autowired
+    OrderDetailService orderDetailService;
     @Autowired
     StatusService statusService;
     @Autowired
@@ -204,14 +206,34 @@ public class StaffController {
     public String confirm(Model model, @RequestParam("status") Integer kind, @PathVariable("id") Long orderId, @ModelAttribute("mailInfo") MailInfo mailInfo) {
         try {
             Order order = orderService.findById(orderId);
+            int current = order.getStatus().getId();
+            // chỉ cho chuyển sang bước kế tiếp, hoặc hủy khi đơn chưa giao xong
+            boolean validMove = (kind == current + 1 && kind <= 4) || (kind == -1 && current >= 0 && current < 4);
+            if (!validMove) {
+                return "redirect:/staff/orders/status/" + current;
+            }
             Status status = statusService.findById(kind);
+            if (kind == -1) {
+                orderDetailService.restoreStock(order);
+            }
             order.setStatus(status);
             order.setDateConfirm(new Date());
             orderService.save(order);
             if (kind == -1) {
-                mailService.send(mailInfo);                
+                // luôn gửi tới email của khách đặt đơn, không tin địa chỉ nhập từ form
+                mailInfo.setTo(order.getAccount().getEmail());
+                mailInfo.setFrom(null);
+                mailInfo.setCc(null);
+                mailInfo.setBcc(null);
+                mailInfo.setAttachments(null);
+                try {
+                    mailService.send(mailInfo);
+                } catch (Exception mailError) {
+                    mailError.printStackTrace();
+                }
             }
-            return "redirect:/staff/orders/status/" + (kind - 1);
+            // quay lại đúng tab trạng thái mà nhân viên vừa thao tác
+            return "redirect:/staff/orders/status/" + current;
         } catch (Exception e) {
             e.printStackTrace();
             return "redirect:/login.fastshop.com";
@@ -284,10 +306,11 @@ public class StaffController {
             if (auth == null || auth.getAccount() == null) {
                 return "redirect:/login.fastshop.com";
             }
-            model.addAttribute("mailInfo", new MailInfo(auth.getAccount().getEmail(), "Thông báo đơn hàng của bạn đã bị hủy từ Fashshop.com", ""));
-            Date toNow = java.sql.Date.valueOf(LocalDate.now());
+            if (status < -1 || status > 4) {
+                return "redirect:/staff/orders/status/0";
+            }
+            model.addAttribute("mailInfo", new MailInfo(auth.getAccount().getEmail(), "Thông báo đơn hàng của bạn đã bị hủy từ Fastshop.com", ""));
             model.addAttribute("page", "staff.home");
-            model.addAttribute("orderNotToday", orderService.findNotByCreateDate(toNow));
             model.addAttribute("status", status);
             model.addAttribute("title_main", "Danh sách hóa đơn theo loại");
             model.addAttribute("ordertoday", orderService.findByStatus(status));

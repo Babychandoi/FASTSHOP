@@ -159,46 +159,6 @@
         max-height: 400px;
       }
       
-      .page-content-with-sidebar #myChart23 {
-        width: 100% !important;
-        height: 500px !important;
-        min-height: 500px;
-      }
-      
-      /* Đảm bảo modal và các nút trong modal có thể click được */
-      .modal {
-        z-index: 1060 !important;
-      }
-      
-      /* Ẩn modal backdrop để không đè lên các nút */
-      .modal-backdrop {
-        display: none !important;
-      }
-      
-      /* Modal content và dialog phải ở trên backdrop */
-      .modal-dialog {
-        z-index: 1061 !important;
-        position: relative;
-      }
-      
-      .modal-content {
-        z-index: 1062 !important;
-        position: relative;
-        pointer-events: auto !important;
-      }
-      
-      /* Đảm bảo tất cả các phần tử trong modal có thể click được */
-      .modal-content * {
-        pointer-events: auto !important;
-      }
-      
-      .modal-footer .btn,
-      .modal-footer a {
-        position: relative;
-        z-index: 1063 !important;
-        pointer-events: auto !important;
-      }
-      
       /* Đảm bảo sidebar không đè lên modal */
       .sidebar-admin-container {
         z-index: 1 !important;
@@ -207,16 +167,6 @@
       /* Sidebar backdrop chỉ hiển thị trên mobile và không được đè lên modal */
       .sidebar-backdrop {
         z-index: 1050 !important;
-      }
-      
-      /* Khi modal hiển thị, ẩn sidebar backdrop để không chặn modal */
-      body:has(.modal.show) .sidebar-backdrop {
-        display: none !important;
-      }
-      
-      /* Đảm bảo modal luôn ở trên cùng */
-      body:has(.modal.show) .sidebar-admin-container {
-        z-index: 1 !important;
       }
       
       @media (max-width: 768px) {
@@ -323,19 +273,19 @@
           </button>
           
           <!-- logo -->
-          <h1 th:replace="~{/layout/_logo::logo}"></h1>
+          <h1 th:replace="~{layout/_logo::logo}"></h1>
 
           <div class="navbar-nav flex-row order-md-last">
             
             <!-- language -->
-            <div th:replace="~{/layout/_language::language}"></div>
+            <div th:replace="~{layout/_language::language}"></div>
             
             <!-- mode light dark and cart -->
-            <div th:replace="~{/layout/_mode_cart::mode_cart}"></div>
+            <div th:replace="~{layout/_mode_cart::mode_cart}"></div>
 
 
             <!-- account -->
-            <div th:replace="${auth == null} ? ~{/layout/_account :: header-nb} : ~{/layout/_account :: header-sb}"></div>
+            <div th:replace="${auth == null} ? ~{layout/_account :: header-nb} : ~{layout/_account :: header-sb}"></div>
 
 
           </div>
@@ -349,14 +299,14 @@
         <div class="navbar-expand-md">
           <th:block th:if="${auth != null}">
             <th:block th:if="${auth.role.id == 'STAFF'}">
-              <div th:insert="~{/layout/_menu :: menu-staff}" class="navbar-expand-md"></div>
+              <div th:insert="~{layout/_menu :: menu-staff}" class="navbar-expand-md"></div>
             </th:block>
             <th:block th:if="${auth.role.id == 'USER'}">
-              <div th:insert="~{/layout/_menu :: menu-user}" class="navbar-expand-md"></div>
+              <div th:insert="~{layout/_menu :: menu-user}" class="navbar-expand-md"></div>
             </th:block>
           </th:block>
           <th:unless th:if="${auth == null}">
-            <div th:insert="~{/layout/_menu :: menu-user}" class="navbar-expand-md"></div>
+            <div th:insert="~{layout/_menu :: menu-user}" class="navbar-expand-md"></div>
           </th:unless>
         </div>
       </th:block>
@@ -378,7 +328,7 @@
         <!-- Sidebar for admin pages -->
         <th:block th:if="${page != null and page.startsWith('admin.')}">
           <aside class="sidebar sidebar-admin-container">
-            <div th:insert="~{/layout/_menu :: sidebar-admin}"></div>
+            <div th:insert="~{layout/_menu :: sidebar-admin}"></div>
           </aside>
           <div class="sidebar-backdrop d-md-none" onclick="toggleSidebar()"></div>
         </th:block>
@@ -393,11 +343,11 @@
       <!-- footer -->
       <th:block th:if="${auth != null}">
         <th:block th:if="${auth.role.id == 'USER' }">
-          <footer th:replace="~{/layout/_footer::footer}"></footer>
+          <footer th:replace="~{layout/_footer::footer}"></footer>
         </th:block>
       </th:block>
       <th:unless th:if="${auth == null}">
-        <footer th:replace="~{/layout/_footer::footer}"></footer>
+        <footer th:replace="~{layout/_footer::footer}"></footer>
       </th:unless>
     </div>
     <script th:src="@{/angular/sumary.js}"></script>
@@ -578,6 +528,15 @@
           setTimeout(fixAccountDropdown, 200);
         });
       })();
+    </script>
+    <script>
+      // Modal nằm trong các khối có position/z-index sẽ bị nền mờ che mất;
+      // đưa modal ra trực tiếp dưới <body> trước khi hiển thị để Bootstrap xếp lớp đúng.
+      document.addEventListener('show.bs.modal', function (event) {
+        if (event.target.parentElement !== document.body) {
+          document.body.appendChild(event.target);
+        }
+      });
     </script>
   </body>
 </html>
